@@ -1,10 +1,9 @@
-
 import React from 'react';
 import { FacebookIcon, InstagramIcon, WhatsAppIcon } from '../components/Icons';
 
 const ContactPage: React.FC = () => {
     const contactLinks = [
-        { Icon: WhatsAppIcon, name: 'واتساب', href: '#', handle: '+20 123 456 7890' },
+        { Icon: WhatsAppIcon, name: 'واتساب', href: 'https://wa.me/201555414422', handle: '+20 155 541 4422' },
         { Icon: InstagramIcon, name: 'إنستجرام', href: '#', handle: '@medusa.eg' },
         { Icon: FacebookIcon, name: 'فيسبوك', href: '#', handle: 'Medusa Egypt' },
     ];
@@ -24,6 +23,8 @@ const ContactPage: React.FC = () => {
               key={name}
               className="block rounded-xl border border-gray-200 p-8 shadow-sm transition hover:border-black hover:shadow-lg"
               href={href}
+              target="_blank"
+              rel="noopener noreferrer"
             >
               <Icon className="h-10 w-10 text-black" />
               <h2 className="mt-4 text-xl font-bold text-black">{name}</h2>

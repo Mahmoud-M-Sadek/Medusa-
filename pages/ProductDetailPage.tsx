@@ -108,8 +108,7 @@ const ProductDetailPage: React.FC = () => {
 - *المقاس*: ${selectedSize}
 - *السعر*: ${product.price} جنيه
     `;
-    // Note: The phone number should be changed to a real one.
-    const whatsappUrl = `https://wa.me/201234567890?text=${encodeURIComponent(message.trim())}`;
+    const whatsappUrl = `https://wa.me/201555414422?text=${encodeURIComponent(message.trim())}`;
     
     addOrder({
         productName: product.name,
