@@ -93,7 +93,7 @@ const Footer: React.FC = () => {
              <div className="flex justify-center gap-6 sm:justify-start md:gap-8 mt-4 sm:mt-0">
                 <a href="#" target="_blank" rel="noreferrer" className="hover:opacity-75"><FacebookIcon /></a>
                 <a href="#" target="_blank" rel="noreferrer" className="hover:opacity-75"><InstagramIcon /></a>
-                <a href="#" target="_blank" rel="noreferrer" className="hover:opacity-75"><WhatsAppIcon /></a>
+                <a href="https://wa.me/201555414422" target="_blank" rel="noreferrer" className="hover:opacity-75"><WhatsAppIcon /></a>
             </div>
             <p className="mt-4 text-center text-sm lg:mt-0 lg:text-right">
                 &copy; {new Date().getFullYear()} Medusa. جميع الحقوق محفوظة.
