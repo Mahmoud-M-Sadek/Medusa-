@@ -12,10 +12,8 @@ const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) 
 });
 
 const ProductForm: React.FC<{ productToEdit?: Product; onFormSubmit: () => void }> = ({ productToEdit, onFormSubmit }) => {
-    const { mainCategories, subcategories, products, setProducts } = useContext(AppContext) as AppContextType;
+    const { mainCategories, subcategories, setProducts } = useContext(AppContext) as AppContextType;
     
-    const initialSubCatId = productToEdit?.subCategoryId || subcategories.find(sc => sc.mainCategoryId === mainCategories[0]?.id)?.id || '';
-
     const [product, setProduct] = useState<Omit<Product, 'id'>>({
         name: '', description: '', price: 0, originalPrice: undefined, subCategoryId: '', isAvailable: true,
         colorVariants: [{ name: '', colorCode: '#000000', images: [] }], sizes: [], isBestSeller: false, isFeatured: false,
@@ -31,7 +29,15 @@ const ProductForm: React.FC<{ productToEdit?: Product; onFormSubmit: () => void 
              const firstMainCatId = mainCategories[0]?.id || '';
              const firstSubCat = subcategories.find(sc => sc.mainCategoryId === firstMainCatId);
              setSelectedMainCat(firstMainCatId);
-             setProduct(prev => ({...prev, subCategoryId: firstSubCat?.id || ''}));
+             setProduct(prev => ({
+                name: '', description: '', price: 0, originalPrice: undefined, 
+                subCategoryId: firstSubCat?.id || '', 
+                isAvailable: true,
+                colorVariants: [{ name: '', colorCode: '#000000', images: [] }], 
+                sizes: [], 
+                isBestSeller: false, 
+                isFeatured: false,
+             }));
         }
     }, [productToEdit, mainCategories, subcategories]);
     
@@ -97,9 +103,9 @@ const ProductForm: React.FC<{ productToEdit?: Product; onFormSubmit: () => void 
             return;
         }
         if (productToEdit) {
-            setProducts(products.map(p => p.id === productToEdit.id ? { ...product, id: p.id } : p));
+            setProducts(prev => prev.map(p => p.id === productToEdit.id ? { ...product, id: p.id } : p));
         } else {
-            setProducts([...products, { ...product, id: new Date().toISOString() }]);
+            setProducts(prev => [...prev, { ...product, id: new Date().toISOString() }]);
         }
         onFormSubmit();
     };
@@ -122,8 +128,8 @@ const ProductForm: React.FC<{ productToEdit?: Product; onFormSubmit: () => void 
                 <select value={selectedMainCat} onChange={handleMainCategoryChange} className="w-full rounded-md border-gray-300">
                      {mainCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-                <select name="subCategoryId" value={product.subCategoryId} onChange={handleChange} className="w-full rounded-md border-gray-300">
-                    {availableSubcategories.length > 0 ? availableSubcategories.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>) : <option disabled>اختر قسم رئيسي أولاً</option>}
+                <select name="subCategoryId" value={product.subCategoryId} onChange={handleChange} className="w-full rounded-md border-gray-300" required>
+                    {availableSubcategories.length > 0 ? availableSubcategories.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>) : <option value="" disabled>اختر قسم رئيسي أولاً</option>}
                 </select>
             </div>
              <div className="flex items-center gap-4">
@@ -177,9 +183,9 @@ const MainCategoryManager: React.FC = () => {
         if(!name || !image) return;
 
         if (editingCategory) {
-            setMainCategories(mainCategories.map(c => c.id === editingCategory.id ? { ...c, name, image } : c));
+            setMainCategories(prev => prev.map(c => c.id === editingCategory.id ? { ...c, name, image } : c));
         } else {
-            setMainCategories([...mainCategories, { id: new Date().toISOString(), name, image }]);
+            setMainCategories(prev => [...prev, { id: new Date().toISOString(), name, image }]);
         }
         setName('');
         setImage('');
@@ -200,7 +206,7 @@ const MainCategoryManager: React.FC = () => {
 
     const handleDelete = (id: string) => {
         if(window.confirm('هل أنت متأكد من حذف هذا القسم؟ سيتم حذف الأقسام الفرعية والمنتجات المرتبطة به.')) {
-            setMainCategories(mainCategories.filter(c => c.id !== id));
+            setMainCategories(prev => prev.filter(c => c.id !== id));
             // Also delete related subcategories and products (or handle them as uncategorized)
         }
     }
@@ -257,9 +263,9 @@ const SubcategoryManager: React.FC = () => {
         if (!name || !mainCategoryId) return;
 
         if (editingSubcategory) {
-            setSubcategories(subcategories.map(sc => sc.id === editingSubcategory.id ? { ...sc, name, mainCategoryId } : sc));
+            setSubcategories(prev => prev.map(sc => sc.id === editingSubcategory.id ? { ...sc, name, mainCategoryId } : sc));
         } else {
-            setSubcategories([...subcategories, { id: new Date().toISOString(), name, mainCategoryId }]);
+            setSubcategories(prev => [...prev, { id: new Date().toISOString(), name, mainCategoryId }]);
         }
         setName('');
         setEditingSubcategory(null);
@@ -273,7 +279,7 @@ const SubcategoryManager: React.FC = () => {
 
     const handleDelete = (id: string) => {
         if (window.confirm('هل أنت متأكد من حذف هذا القسم الفرعي؟')) {
-            setSubcategories(subcategories.filter(sc => sc.id !== id));
+            setSubcategories(prev => prev.filter(sc => sc.id !== id));
         }
     }
 
@@ -334,7 +340,7 @@ const AdminDashboardPage: React.FC = () => {
     
     const deleteProduct = (id: string) => {
         if(window.confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-            setProducts(products.filter(p => p.id !== id));
+            setProducts(prev => prev.filter(p => p.id !== id));
         }
     };
 
