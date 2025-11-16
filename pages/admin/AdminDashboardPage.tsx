@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
-import type { AppContextType, Product, MainCategory, Subcategory, ColorVariant } from '../../types';
+import type { AppContextType, Product, MainCategory, Subcategory, ColorVariant, OrderStatus } from '../../types';
 import { PlusCircleIcon, Trash2Icon, XIcon } from '../../components/Icons';
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -317,7 +317,7 @@ const SubcategoryManager: React.FC = () => {
 
 
 const AdminDashboardPage: React.FC = () => {
-    const { isLoggedIn, logout, products, setProducts, orders } = useContext(AppContext) as AppContextType;
+    const { isLoggedIn, logout, products, setProducts, orders, updateOrderStatus } = useContext(AppContext) as AppContextType;
     const [activeTab, setActiveTab] = useState('products');
     const [showForm, setShowForm] = useState(false);
     const [productToEdit, setProductToEdit] = useState<Product | undefined>(undefined);
@@ -354,6 +354,7 @@ const AdminDashboardPage: React.FC = () => {
     }
     
     const tabClass = (tabName: string) => `px-4 py-2 text-sm font-medium rounded-md transition ${activeTab === tabName ? 'bg-black text-white' : 'text-gray-500 hover:bg-gray-100'}`;
+    const orderStatuses: OrderStatus[] = ['تحت المراجعة', 'تم التأكيد', 'تم الشحن', 'تم التوصيل', 'ملغي'];
 
     return (
         <div className="bg-gray-100 min-h-screen">
@@ -422,7 +423,7 @@ const AdminDashboardPage: React.FC = () => {
                     {activeTab === 'orders' && (
                          <div className="bg-white shadow overflow-hidden rounded-md">
                              <div className="p-4 border-b">
-                                 <h3 className="font-bold">سجل الطلبات</h3>
+                                 <h3 className="font-bold">سجل الطلبات ({orders.length})</h3>
                                  <p className="text-sm text-gray-500">هذه الطلبات تم إنشاؤها من صفحة إتمام الطلب.</p>
                             </div>
                             <div className="space-y-4 p-4">
@@ -431,12 +432,26 @@ const AdminDashboardPage: React.FC = () => {
                                         <div className="flex justify-between items-start flex-wrap gap-2 mb-4 pb-4 border-b">
                                             <div>
                                                 <p className="font-bold text-lg">{order.customerName}</p>
+                                                <p className="text-sm text-gray-600">رقم الطلب: <span className="font-mono">{order.id}</span></p>
                                                 <p className="text-sm text-gray-600">{order.customerPhone}</p>
                                                 <p className="text-sm text-gray-600">{order.customerAddress}</p>
                                             </div>
                                             <div className="text-left">
                                                 <p className="font-bold">الإجمالي: {order.totalPrice} جنيه</p>
                                                 <p className="text-xs text-gray-500">تاريخ الطلب: {order.timestamp}</p>
+                                                <div className="mt-2">
+                                                    <label htmlFor={`status-${order.id}`} className="sr-only">حالة الطلب</label>
+                                                    <select
+                                                        id={`status-${order.id}`}
+                                                        value={order.status}
+                                                        onChange={(e) => updateOrderStatus(order.id, e.target.value as OrderStatus)}
+                                                        className="rounded-md border-gray-300 text-sm"
+                                                    >
+                                                        {orderStatuses.map(status => (
+                                                            <option key={status} value={status}>{status}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
                                             </div>
                                         </div>
                                         <h4 className="font-bold mb-2">المنتجات المطلوبة:</h4>

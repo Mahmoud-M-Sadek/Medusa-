@@ -1,19 +1,20 @@
 import React, { useContext, useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import { AppContextType } from '../types';
+import { AppContextType, Order } from '../types';
 import { WhatsAppIcon } from '../components/Icons';
 
 const CheckoutPage: React.FC = () => {
   const { cart, addOrder, clearCart } = useContext(AppContext) as AppContextType;
   const navigate = useNavigate();
   const [customer, setCustomer] = useState({ name: '', phone: '', address: '' });
+  const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
 
   useEffect(() => {
-    if (cart.length === 0) {
+    if (cart.length === 0 && !placedOrder) {
       navigate('/cart');
     }
-  }, [cart, navigate]);
+  }, [cart, navigate, placedOrder]);
 
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
@@ -38,7 +39,7 @@ const CheckoutPage: React.FC = () => {
     }));
     
     // Add to local storage orders
-    addOrder({
+    const newOrder = addOrder({
         customerName: customer.name,
         customerPhone: customer.phone,
         customerAddress: customer.address,
@@ -49,6 +50,7 @@ const CheckoutPage: React.FC = () => {
     // Create WhatsApp message
     let message = `
 طلب جديد من Medusa:
+*رقم الطلب: ${newOrder.id}*
 -------------------
 *بيانات العميل:*
 - الاسم: ${customer.name}
@@ -73,12 +75,35 @@ const CheckoutPage: React.FC = () => {
 
     const whatsappUrl = `https://wa.me/201555414422?text=${encodeURIComponent(message.trim())}`;
     
-    // Clear cart and navigate
+    // Clear cart and update state
     clearCart();
+    setPlacedOrder(newOrder);
     window.open(whatsappUrl, '_blank');
-    alert('شكرًا لطلبك! سيتم توجيهك إلى واتساب لإرسال الطلب.');
-    navigate('/');
   };
+
+  if (placedOrder) {
+    return (
+        <div className="mx-auto max-w-screen-xl px-4 py-16 sm:px-6 lg:px-8 text-center">
+            <h1 className="text-2xl font-bold text-green-700">تم استلام طلبك بنجاح!</h1>
+            <p className="mt-4 text-gray-600">
+                شكرًا لثقتك في Medusa. لقد تم إرسال تفاصيل طلبك عبر واتساب.
+            </p>
+            <div className="mt-6 p-4 bg-gray-100 rounded-lg inline-block">
+                <p className="text-sm text-gray-700">رقم طلبك هو:</p>
+                <p className="text-xl font-bold tracking-widest">{placedOrder.id}</p>
+            </div>
+            <p className="mt-4 text-gray-600">يمكنك استخدام هذا الرقم لتتبع حالة طلبك.</p>
+            <div className="mt-8 flex justify-center gap-4">
+                 <Link to={`/track-order/${placedOrder.id}`} className="inline-block rounded-md bg-black px-5 py-3 text-sm font-medium text-white hover:bg-gray-800">
+                    تتبع طلبك
+                </Link>
+                <Link to="/shop" className="inline-block rounded-md border border-gray-300 bg-white px-5 py-3 text-sm font-medium text-black hover:bg-gray-50">
+                    متابعة التسوق
+                </Link>
+            </div>
+        </div>
+    )
+  }
 
   return (
     <div className="mx-auto max-w-screen-xl px-4 py-12 sm:px-6 lg:px-8">

@@ -13,6 +13,7 @@ const Header: React.FC = () => {
     const navItems = [
         { name: 'الرئيسية', path: '/' },
         { name: 'المتجر', path: '/shop' },
+        { name: 'تتبع طلبك', path: '/track-order'},
         { name: 'من نحن', path: '/about' },
         { name: 'تواصل معنا', path: '/contact' },
     ];

@@ -50,6 +50,9 @@ export interface OrderItem {
   quantity: number;
 }
 
+export type OrderStatus = 'تحت المراجعة' | 'تم التأكيد' | 'تم الشحن' | 'تم التوصيل' | 'ملغي';
+
+
 export interface Order {
     id: string;
     timestamp: string;
@@ -58,6 +61,7 @@ export interface Order {
     customerAddress: string;
     items: OrderItem[];
     totalPrice: number;
+    status: OrderStatus;
 }
 
 
@@ -69,7 +73,8 @@ export interface AppContextType {
   subcategories: Subcategory[];
   setSubcategories: React.Dispatch<React.SetStateAction<Subcategory[]>>;
   orders: Order[];
-  addOrder: (orderData: Omit<Order, 'id' | 'timestamp'>) => void;
+  addOrder: (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>) => Order;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   isLoggedIn: boolean;
   login: (password: string) => boolean;
   logout: () => void;

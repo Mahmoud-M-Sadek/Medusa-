@@ -13,6 +13,7 @@ import AdminLoginPage from './pages/admin/AdminLoginPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
 import CartPage from './pages/CartPage';
 import CheckoutPage from './pages/CheckoutPage';
+import TrackOrderPage from './pages/TrackOrderPage';
 
 
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -33,6 +34,8 @@ function App() {
             <Route path="about" element={<AboutPage />} />
             <Route path="cart" element={<CartPage />} />
             <Route path="checkout" element={<CheckoutPage />} />
+            <Route path="track-order" element={<TrackOrderPage />} />
+            <Route path="track-order/:orderId" element={<TrackOrderPage />} />
           </Route>
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route 

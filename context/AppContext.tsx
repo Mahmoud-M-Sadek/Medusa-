@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
-import type { Product, MainCategory, Subcategory, Order, AppContextType, CartItem } from '../types';
+import type { Product, MainCategory, Subcategory, Order, AppContextType, CartItem, OrderStatus } from '../types';
 
 export const AppContext = createContext<AppContextType | null>(null);
 
@@ -145,15 +145,25 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsLoggedIn(false);
   };
 
-  const addOrder = (orderData: Omit<Order, 'id' | 'timestamp'>) => {
+  const addOrder = (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>): Order => {
     const newOrder: Order = {
         ...orderData,
-        id: new Date().toISOString(),
+        id: `MEDUSA-${Date.now().toString().slice(-6)}`,
         timestamp: new Date().toLocaleString('ar-EG'),
+        status: 'تحت المراجعة',
     };
     setOrders(prevOrders => [newOrder, ...prevOrders]);
+    return newOrder;
   };
   
+  const updateOrderStatus = (orderId: string, status: OrderStatus) => {
+    setOrders(prevOrders =>
+      prevOrders.map(order =>
+        order.id === orderId ? { ...order, status } : order
+      )
+    );
+  };
+
   const addToCart = (item: Omit<CartItem, 'id' | 'quantity'>) => {
     const cartItemId = `${item.productId}-${item.selectedColor.name}-${item.selectedSize}`;
     setCart(prevCart => {
@@ -185,7 +195,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
 
 
   return (
-    <AppContext.Provider value={{ products, setProducts, mainCategories, setMainCategories, subcategories, setSubcategories, orders, addOrder, isLoggedIn, login, logout, cart, addToCart, removeFromCart, updateCartItemQuantity, clearCart }}>
+    <AppContext.Provider value={{ products, setProducts, mainCategories, setMainCategories, subcategories, setSubcategories, orders, addOrder, updateOrderStatus, isLoggedIn, login, logout, cart, addToCart, removeFromCart, updateCartItemQuantity, clearCart }}>
       {children}
     </AppContext.Provider>
   );
