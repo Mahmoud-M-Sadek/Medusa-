@@ -1,12 +1,14 @@
 import React, { useState, useContext } from 'react';
 import { Link, NavLink, Outlet } from 'react-router-dom';
-import { MenuIcon, XIcon, FacebookIcon, InstagramIcon, WhatsAppIcon } from './Icons';
+import { MenuIcon, XIcon, FacebookIcon, InstagramIcon, WhatsAppIcon, ShoppingCartIcon } from './Icons';
 import { AppContext } from '../context/AppContext';
 import type { AppContextType } from '../types';
 
 const Header: React.FC = () => {
     const [isOpen, setIsOpen] = useState(false);
-    const { isLoggedIn } = useContext(AppContext) as AppContextType;
+    const { isLoggedIn, cart } = useContext(AppContext) as AppContextType;
+    
+    const totalCartItems = cart.reduce((sum, item) => sum + item.quantity, 0);
 
     const navItems = [
         { name: 'الرئيسية', path: '/' },
@@ -48,6 +50,14 @@ const Header: React.FC = () => {
                     </div>
 
                     <div className="flex items-center gap-4">
+                        <Link to="/cart" className="relative p-2 text-black hover:opacity-75">
+                            <ShoppingCartIcon />
+                            {totalCartItems > 0 && (
+                                <span className="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-black text-xs text-white">
+                                    {totalCartItems}
+                                </span>
+                            )}
+                        </Link>
                         <div className="block md:hidden">
                             <button
                                 onClick={() => setIsOpen(!isOpen)}
@@ -91,8 +101,8 @@ const Footer: React.FC = () => {
                <span className="text-2xl font-bold">MEDUSA</span>
             </div>
              <div className="flex justify-center gap-6 sm:justify-start md:gap-8 mt-4 sm:mt-0">
-                <a href="#" target="_blank" rel="noreferrer" className="hover:opacity-75"><FacebookIcon /></a>
-                <a href="#" target="_blank" rel="noreferrer" className="hover:opacity-75"><InstagramIcon /></a>
+                <a href="https://www.facebook.com/share/16x7iyE5ck/?mibextid=wwXIfr" target="_blank" rel="noreferrer" className="hover:opacity-75"><FacebookIcon /></a>
+                <a href="https://www.instagram.com/m0dessa" target="_blank" rel="noreferrer" className="hover:opacity-75"><InstagramIcon /></a>
                 <a href="https://wa.me/201555414422" target="_blank" rel="noreferrer" className="hover:opacity-75"><WhatsAppIcon /></a>
             </div>
             <p className="mt-4 text-center text-sm lg:mt-0 lg:text-right">

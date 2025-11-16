@@ -1,8 +1,8 @@
 import React, { useState, useContext, useMemo, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { AppContext } from '../context/AppContext';
-import type { AppContextType, Product as ProductType } from '../types';
-import { ChevronLeftIcon, ChevronRightIcon, WhatsAppIcon } from '../components/Icons';
+import type { AppContextType } from '../types';
+import { ChevronLeftIcon, ChevronRightIcon, ShoppingCartIcon } from '../components/Icons';
 
 const ImageGallery: React.FC<{ images: string[] }> = ({ images }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
@@ -62,7 +62,7 @@ const ImageGallery: React.FC<{ images: string[] }> = ({ images }) => {
 
 const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
-  const { products, mainCategories, subcategories, addOrder } = useContext(AppContext) as AppContextType;
+  const { products, mainCategories, subcategories, addToCart } = useContext(AppContext) as AppContextType;
   const navigate = useNavigate();
 
   const product = useMemo(() => products.find(p => p.id === productId), [products, productId]);
@@ -95,29 +95,22 @@ const ProductDetailPage: React.FC = () => {
 
   const selectedColor = product.colorVariants[selectedColorIndex];
 
-  const handleOrderViaWhatsApp = () => {
+  const handleAddToCart = () => {
     if (product.sizes.length > 1 && !selectedSize) {
         alert('يرجى اختيار المقاس أولاً.');
         return;
     }
-    const message = `
-أود طلب المنتج التالي من Medusa:
-- *المنتج*: ${product.name}
-- *القسم*: ${mainCategory?.name || 'غير محدد'} / ${subCategory?.name || 'غير محدد'}
-- *اللون*: ${selectedColor.name}
-- *المقاس*: ${selectedSize}
-- *السعر*: ${product.price} جنيه
-    `;
-    const whatsappUrl = `https://wa.me/201555414422?text=${encodeURIComponent(message.trim())}`;
     
-    addOrder({
-        productName: product.name,
-        color: selectedColor.name,
-        size: selectedSize,
-        price: product.price,
+    addToCart({
+      productId: product.id,
+      name: product.name,
+      price: product.price,
+      image: selectedColor.images[0],
+      selectedColor: selectedColor,
+      selectedSize: selectedSize
     });
-    
-    window.open(whatsappUrl, '_blank');
+
+    alert('تمت إضافة المنتج إلى السلة بنجاح!');
   };
 
   return (
@@ -187,11 +180,11 @@ const ProductDetailPage: React.FC = () => {
 
             <div className="mt-8">
               <button
-                onClick={handleOrderViaWhatsApp}
+                onClick={handleAddToCart}
                 disabled={!product.isAvailable}
                 className="flex w-full items-center justify-center gap-3 rounded-md bg-black px-8 py-3 text-white transition hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
               >
-                {product.isAvailable ? <><WhatsAppIcon className="w-5 h-5" /><span className="text-sm font-medium">اطلب عبر واتساب</span></> : 'غير متاح حاليًا'}
+                {product.isAvailable ? <><ShoppingCartIcon className="w-5 h-5" /><span className="text-sm font-medium">أضف إلى السلة</span></> : 'غير متاح حاليًا'}
               </button>
             </div>
           </div>

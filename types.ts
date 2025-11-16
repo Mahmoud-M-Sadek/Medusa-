@@ -30,14 +30,36 @@ export interface Subcategory {
     mainCategoryId: string;
 }
 
+export interface CartItem {
+  id: string; // Unique identifier for the cart item, e.g., `${productId}-${color}-${size}`
+  productId: string;
+  name: string;
+  price: number;
+  image: string;
+  selectedColor: ColorVariant;
+  selectedSize: string;
+  quantity: number;
+}
+
+export interface OrderItem {
+  productId: string;
+  name: string;
+  price: number;
+  color: string;
+  size: string;
+  quantity: number;
+}
+
 export interface Order {
     id: string;
-    productName: string;
-    color: string;
-    size: string;
-    price: number;
     timestamp: string;
+    customerName: string;
+    customerPhone: string;
+    customerAddress: string;
+    items: OrderItem[];
+    totalPrice: number;
 }
+
 
 export interface AppContextType {
   products: Product[];
@@ -47,8 +69,13 @@ export interface AppContextType {
   subcategories: Subcategory[];
   setSubcategories: React.Dispatch<React.SetStateAction<Subcategory[]>>;
   orders: Order[];
-  addOrder: (order: Omit<Order, 'id' | 'timestamp'>) => void;
+  addOrder: (orderData: Omit<Order, 'id' | 'timestamp'>) => void;
   isLoggedIn: boolean;
   login: (password: string) => boolean;
   logout: () => void;
+  cart: CartItem[];
+  addToCart: (item: Omit<CartItem, 'id' | 'quantity'>) => void;
+  removeFromCart: (itemId: string) => void;
+  updateCartItemQuantity: (itemId: string, quantity: number) => void;
+  clearCart: () => void;
 }

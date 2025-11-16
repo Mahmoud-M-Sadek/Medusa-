@@ -1,7 +1,7 @@
 import React, { useState, useContext, useEffect } from 'react';
 import { Navigate, useNavigate } from 'react-router-dom';
 import { AppContext } from '../../context/AppContext';
-import type { AppContextType, Product, MainCategory, Subcategory, ColorVariant, Order } from '../../types';
+import type { AppContextType, Product, MainCategory, Subcategory, ColorVariant } from '../../types';
 import { PlusCircleIcon, Trash2Icon, XIcon } from '../../components/Icons';
 
 const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) => {
@@ -422,22 +422,35 @@ const AdminDashboardPage: React.FC = () => {
                     {activeTab === 'orders' && (
                          <div className="bg-white shadow overflow-hidden rounded-md">
                              <div className="p-4 border-b">
-                                 <h3 className="font-bold">سجل الطلبات عبر واتساب</h3>
-                                 <p className="text-sm text-gray-500">هذه الطلبات تم إنشاؤها عند ضغط المستخدم على زر "اطلب عبر واتساب".</p>
+                                 <h3 className="font-bold">سجل الطلبات</h3>
+                                 <p className="text-sm text-gray-500">هذه الطلبات تم إنشاؤها من صفحة إتمام الطلب.</p>
                             </div>
-                            <ul className="divide-y divide-gray-200">
-                                {orders.length > 0 ? orders.map(o => (
-                                    <li key={o.id} className="p-4">
-                                        <div className="flex justify-between flex-wrap gap-2">
+                            <div className="space-y-4 p-4">
+                                {orders.length > 0 ? orders.map(order => (
+                                    <div key={order.id} className="border border-gray-200 rounded-lg p-4">
+                                        <div className="flex justify-between items-start flex-wrap gap-2 mb-4 pb-4 border-b">
                                             <div>
-                                                <p className="font-bold">{o.productName}</p>
-                                                <p className="text-sm text-gray-600">اللون: {o.color} | المقاس: {o.size} | السعر: {o.price} جنيه</p>
+                                                <p className="font-bold text-lg">{order.customerName}</p>
+                                                <p className="text-sm text-gray-600">{order.customerPhone}</p>
+                                                <p className="text-sm text-gray-600">{order.customerAddress}</p>
                                             </div>
-                                            <p className="text-sm text-gray-500">{o.timestamp}</p>
+                                            <div className="text-left">
+                                                <p className="font-bold">الإجمالي: {order.totalPrice} جنيه</p>
+                                                <p className="text-xs text-gray-500">تاريخ الطلب: {order.timestamp}</p>
+                                            </div>
                                         </div>
-                                    </li>
+                                        <h4 className="font-bold mb-2">المنتجات المطلوبة:</h4>
+                                        <ul className="space-y-2">
+                                            {order.items.map(item => (
+                                                <li key={item.productId + item.size + item.color} className="flex justify-between text-sm">
+                                                    <span>{item.name} (×{item.quantity}) - {item.color} / {item.size}</span>
+                                                    <span>{item.price * item.quantity} جنيه</span>
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
                                 )) : <p className="p-4 text-center text-gray-500">لا توجد طلبات مسجلة.</p>}
-                            </ul>
+                            </div>
                         </div>
                     )}
                 </div>

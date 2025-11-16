@@ -1,6 +1,6 @@
 import React, { createContext, useState, useEffect } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
-import type { Product, MainCategory, Subcategory, Order, AppContextType } from '../types';
+import type { Product, MainCategory, Subcategory, Order, AppContextType, CartItem } from '../types';
 
 export const AppContext = createContext<AppContextType | null>(null);
 
@@ -115,6 +115,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [subcategories, setSubcategories] = useLocalStorage<Subcategory[]>('medusa_subcategories', []);
   const [orders, setOrders] = useLocalStorage<Order[]>('medusa_orders', []);
   const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>('medusa_isLoggedIn', false);
+  const [cart, setCart] = useLocalStorage<CartItem[]>('medusa_cart', []);
 
   useEffect(() => {
     const productsInStorage = window.localStorage.getItem('medusa_products');
@@ -144,17 +145,47 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
     setIsLoggedIn(false);
   };
 
-  const addOrder = (order: Omit<Order, 'id' | 'timestamp'>) => {
+  const addOrder = (orderData: Omit<Order, 'id' | 'timestamp'>) => {
     const newOrder: Order = {
-        ...order,
+        ...orderData,
         id: new Date().toISOString(),
         timestamp: new Date().toLocaleString('ar-EG'),
     };
     setOrders(prevOrders => [newOrder, ...prevOrders]);
   };
+  
+  const addToCart = (item: Omit<CartItem, 'id' | 'quantity'>) => {
+    const cartItemId = `${item.productId}-${item.selectedColor.name}-${item.selectedSize}`;
+    setCart(prevCart => {
+        const existingItem = prevCart.find(i => i.id === cartItemId);
+        if (existingItem) {
+            return prevCart.map(i => i.id === cartItemId ? { ...i, quantity: i.quantity + 1 } : i);
+        } else {
+            return [...prevCart, { ...item, id: cartItemId, quantity: 1 }];
+        }
+    });
+  };
+
+  const removeFromCart = (itemId: string) => {
+    setCart(prevCart => prevCart.filter(item => item.id !== itemId));
+  };
+  
+  const updateCartItemQuantity = (itemId: string, quantity: number) => {
+      setCart(prevCart => {
+          if (quantity <= 0) {
+              return prevCart.filter(item => item.id !== itemId);
+          }
+          return prevCart.map(item => item.id === itemId ? { ...item, quantity } : item);
+      })
+  };
+
+  const clearCart = () => {
+    setCart([]);
+  };
+
 
   return (
-    <AppContext.Provider value={{ products, setProducts, mainCategories, setMainCategories, subcategories, setSubcategories, orders, addOrder, isLoggedIn, login, logout }}>
+    <AppContext.Provider value={{ products, setProducts, mainCategories, setMainCategories, subcategories, setSubcategories, orders, addOrder, isLoggedIn, login, logout, cart, addToCart, removeFromCart, updateCartItemQuantity, clearCart }}>
       {children}
     </AppContext.Provider>
   );

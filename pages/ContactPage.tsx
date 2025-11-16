@@ -4,8 +4,8 @@ import { FacebookIcon, InstagramIcon, WhatsAppIcon } from '../components/Icons';
 const ContactPage: React.FC = () => {
     const contactLinks = [
         { Icon: WhatsAppIcon, name: 'واتساب', href: 'https://wa.me/201555414422', handle: '+20 155 541 4422' },
-        { Icon: InstagramIcon, name: 'إنستجرام', href: '#', handle: '@medusa.eg' },
-        { Icon: FacebookIcon, name: 'فيسبوك', href: '#', handle: 'Medusa Egypt' },
+        { Icon: InstagramIcon, name: 'إنستجرام', href: 'https://www.instagram.com/m0dessa', handle: '@m0dessa' },
+        { Icon: FacebookIcon, name: 'فيسبوك', href: 'https://www.facebook.com/share/16x7iyE5ck/?mibextid=wwXIfr', handle: 'Medusa' },
     ];
   return (
     <div className="bg-white">

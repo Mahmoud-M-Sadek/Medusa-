@@ -11,6 +11,9 @@ import ContactPage from './pages/ContactPage';
 import AboutPage from './pages/AboutPage';
 import AdminLoginPage from './pages/admin/AdminLoginPage';
 import AdminDashboardPage from './pages/admin/AdminDashboardPage';
+import CartPage from './pages/CartPage';
+import CheckoutPage from './pages/CheckoutPage';
+
 
 const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     const { isLoggedIn } = React.useContext(AppContext) as AppContextType;
@@ -28,6 +31,8 @@ function App() {
             <Route path="product/:productId" element={<ProductDetailPage />} />
             <Route path="contact" element={<ContactPage />} />
             <Route path="about" element={<AboutPage />} />
+            <Route path="cart" element={<CartPage />} />
+            <Route path="checkout" element={<CheckoutPage />} />
           </Route>
           <Route path="/admin/login" element={<AdminLoginPage />} />
           <Route 
