@@ -110,28 +110,12 @@ const initialProducts: Product[] = [
 ];
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useLocalStorage<Product[]>('modessa_products', []);
-  const [mainCategories, setMainCategories] = useLocalStorage<MainCategory[]>('modessa_main_categories', []);
-  const [subcategories, setSubcategories] = useLocalStorage<Subcategory[]>('modessa_subcategories', []);
+  const [products, setProducts] = useLocalStorage<Product[]>('modessa_products', initialProducts);
+  const [mainCategories, setMainCategories] = useLocalStorage<MainCategory[]>('modessa_main_categories', initialMainCategories);
+  const [subcategories, setSubcategories] = useLocalStorage<Subcategory[]>('modessa_subcategories', initialSubcategories);
   const [orders, setOrders] = useLocalStorage<Order[]>('modessa_orders', []);
   const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>('modessa_isLoggedIn', false);
   const [cart, setCart] = useLocalStorage<CartItem[]>('modessa_cart', []);
-
-  useEffect(() => {
-    const productsInStorage = window.localStorage.getItem('modessa_products');
-    if (!productsInStorage || JSON.parse(productsInStorage).length === 0) {
-        setProducts(initialProducts);
-    }
-    const mainCategoriesInStorage = window.localStorage.getItem('modessa_main_categories');
-    if (!mainCategoriesInStorage || JSON.parse(mainCategoriesInStorage).length === 0) {
-        setMainCategories(initialMainCategories);
-    }
-    const subcategoriesInStorage = window.localStorage.getItem('modessa_subcategories');
-    if (!subcategoriesInStorage || JSON.parse(subcategoriesInStorage).length === 0) {
-        setSubcategories(initialSubcategories);
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
 
   const login = (password: string) => {
     if (password === 'admin123456') {
