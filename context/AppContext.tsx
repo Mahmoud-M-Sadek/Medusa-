@@ -1,5 +1,6 @@
-import React, { createContext, useEffect } from 'react';
-import useLocalStorage from '../hooks/useLocalStorage';
+
+// FIX: Import createContext from react to resolve 'Cannot find name' error.
+import React, { createContext, useState } from 'react';
 import type { Product, MainCategory, Subcategory, Order, AppContextType, CartItem, OrderStatus } from '../types';
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -110,23 +111,14 @@ const initialProducts: Product[] = [
 ];
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useLocalStorage<Product[]>('modessa_products', []);
-  const [mainCategories, setMainCategories] = useLocalStorage<MainCategory[]>('modessa_main_categories', []);
-  const [subcategories, setSubcategories] = useLocalStorage<Subcategory[]>('modessa_subcategories', []);
-  const [orders, setOrders] = useLocalStorage<Order[]>('modessa_orders', []);
-  const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>('modessa_isLoggedIn', false);
-  const [cart, setCart] = useLocalStorage<CartItem[]>('modessa_cart', []);
+  // State is now managed by useState and will reset on every page load.
+  const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [mainCategories, setMainCategories] = useState<MainCategory[]>(initialMainCategories);
+  const [subcategories, setSubcategories] = useState<Subcategory[]>(initialSubcategories);
+  const [orders, setOrders] = useState<Order[]>([]);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
+  const [cart, setCart] = useState<CartItem[]>([]);
 
-  // Robust data seeding logic. This ensures initial data is loaded only once.
-  useEffect(() => {
-    const isDataSeeded = localStorage.getItem('modessa_data_seeded');
-    if (isDataSeeded !== 'true') {
-        setProducts(initialProducts);
-        setMainCategories(initialMainCategories);
-        setSubcategories(initialSubcategories);
-        localStorage.setItem('modessa_data_seeded', 'true');
-    }
-  }, [setProducts, setMainCategories, setSubcategories]);
 
   const login = (password: string) => {
     if (password === 'admin123456') {
