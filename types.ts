@@ -74,29 +74,25 @@ export interface AppContextType {
   orders: Order[];
   isLoggedIn: boolean;
   cart: CartItem[];
-  isLoading: boolean;
-  error: string | null;
 
-  // Async Data Operations
-  addProduct: (productData: Omit<Product, 'id'>) => Promise<void>;
-  updateProduct: (productData: Product) => Promise<void>;
-  deleteProduct: (productId: number) => Promise<void>;
+  // Sync Data Operations
+  addProduct: (productData: Omit<Product, 'id'>) => void;
+  updateProduct: (productData: Product) => void;
+  deleteProduct: (productId: number) => void;
 
-  addMainCategory: (catData: Omit<MainCategory, 'id'>) => Promise<void>;
-  updateMainCategory: (catData: MainCategory) => Promise<void>;
-  deleteMainCategory: (catId: number) => Promise<void>;
+  addMainCategory: (catData: Omit<MainCategory, 'id'>) => void;
+  updateMainCategory: (catData: MainCategory) => void;
+  deleteMainCategory: (catId: number) => void;
 
-  addSubcategory: (subCatData: Omit<Subcategory, 'id'>) => Promise<void>;
-  updateSubcategory: (subCatData: Subcategory) => Promise<void>;
-  deleteSubcategory: (subCatId: number) => Promise<void>;
+  addSubcategory: (subCatData: Omit<Subcategory, 'id'>) => void;
+  updateSubcategory: (subCatData: Subcategory) => void;
+  deleteSubcategory: (subCatId: number) => void;
   
-  addOrder: (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>) => Promise<Order | null>;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  addOrder: (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>) => Order;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   
-  fetchInitialData: () => Promise<void>;
-
   // Auth
-  login: (password: string) => Promise<boolean>;
+  login: (password: string) => boolean;
   logout: () => void;
   
   // Cart

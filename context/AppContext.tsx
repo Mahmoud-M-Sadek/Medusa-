@@ -1,216 +1,149 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useEffect } from 'react';
+import { useLocalStorage } from '../hooks/useLocalStorage';
+import { demoProducts, demoMainCategories, demoSubcategories, demoOrders } from '../utils/demoData';
 import type { Product, MainCategory, Subcategory, Order, AppContextType, CartItem, OrderStatus } from '../types';
-
-// This is a helper hook for cart and login state that still needs persistence on the client.
-function useClientSideLocalStorage<T>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
-  const [storedValue, setStoredValue] = useState<T>(() => {
-    try {
-      const item = window.localStorage.getItem(key);
-      return item ? JSON.parse(item) : initialValue;
-    } catch (error) {
-      console.error(error);
-      return initialValue;
-    }
-  });
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem(key, JSON.stringify(storedValue));
-    } catch (error) {
-      console.error(error);
-    }
-  }, [key, storedValue]);
-
-  return [storedValue, setStoredValue];
-}
-
 
 export const AppContext = createContext<AppContextType | null>(null);
 
-const API_BASE_URL = '/api'; // Vercel rewrites will handle this
-
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useState<Product[]>([]);
-  const [mainCategories, setMainCategories] = useState<MainCategory[]>([]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
-  
-  const [isLoggedIn, setIsLoggedIn] = useClientSideLocalStorage<boolean>('isLoggedIn', false);
-  const [cart, setCart] = useClientSideLocalStorage<CartItem[]>('cart', []);
-
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-  
-  const fetchInitialData = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-        const [productsRes, mainCatsRes, subCatsRes, ordersRes] = await Promise.all([
-            fetch(`${API_BASE_URL}/products`),
-            fetch(`${API_BASE_URL}/categories/main`),
-            fetch(`${API_BASE_URL}/categories/sub`),
-            fetch(`${API_BASE_URL}/orders`),
-        ]);
-
-        if (!productsRes.ok || !mainCatsRes.ok || !subCatsRes.ok || !ordersRes.ok) {
-            throw new Error('فشل تحميل البيانات من الخادم.');
+    // This effect runs only once to set the initial data if it's the first visit.
+    useEffect(() => {
+        if (!localStorage.getItem('medusa_initialized')) {
+            localStorage.setItem('medusa_products', JSON.stringify(demoProducts));
+            localStorage.setItem('medusa_main_categories', JSON.stringify(demoMainCategories));
+            localStorage.setItem('medusa_subcategories', JSON.stringify(demoSubcategories));
+            localStorage.setItem('medusa_orders', JSON.stringify(demoOrders));
+            localStorage.setItem('medusa_cart', JSON.stringify([]));
+            localStorage.setItem('medusa_isLoggedIn', JSON.stringify(false));
+            localStorage.setItem('medusa_initialized', 'true');
+            // Force a reload to pick up the localStorage values
+            window.location.reload();
         }
+    }, []);
 
-        const productsData = await productsRes.json();
-        const mainCatsData = await mainCatsRes.json();
-        const subCatsData = await subCatsRes.json();
-        const ordersData = await ordersRes.json();
+    const [products, setProducts] = useLocalStorage<Product[]>('medusa_products', []);
+    const [mainCategories, setMainCategories] = useLocalStorage<MainCategory[]>('medusa_main_categories', []);
+    const [subcategories, setSubcategories] = useLocalStorage<Subcategory[]>('medusa_subcategories', []);
+    const [orders, setOrders] = useLocalStorage<Order[]>('medusa_orders', []);
+    const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>('medusa_isLoggedIn', false);
+    const [cart, setCart] = useLocalStorage<CartItem[]>('medusa_cart', []);
 
-        setProducts(productsData);
-        setMainCategories(mainCatsData);
-        setSubcategories(subCatsData);
-        setOrders(ordersData);
-
-    } catch (err: any) {
-        setError(err.message || 'حدث خطأ غير متوقع.');
-    } finally {
-        setIsLoading(false);
-    }
-  };
-  
-  // Generic helper for API calls
-  const apiCall = async (url: string, method: string, body?: any) => {
-    const options: RequestInit = {
-        method,
-        headers: { 'Content-Type': 'application/json' },
+    // Product CRUD
+    const addProduct = (productData: Omit<Product, 'id'>) => {
+        const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+        const newProduct: Product = { ...productData, id: newId };
+        setProducts(prev => [...prev, newProduct]);
     };
-    if (body) {
-        options.body = JSON.stringify(body);
-    }
-    const response = await fetch(url, options);
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ message: 'فشل تنفيذ العملية' }));
-        throw new Error(errorData.message);
-    }
-    return response.status !== 204 ? response.json() : null;
-  };
 
-  // Products
-  const addProduct = async (productData: Omit<Product, 'id'>) => {
-    const newProduct = await apiCall(`${API_BASE_URL}/products`, 'POST', productData);
-    setProducts(prev => [...prev, newProduct]);
-  };
+    const updateProduct = (productData: Product) => {
+        setProducts(prev => prev.map(p => p.id === productData.id ? productData : p));
+    };
 
-  const updateProduct = async (productData: Product) => {
-    const updatedProduct = await apiCall(`${API_BASE_URL}/products/${productData.id}`, 'PUT', productData);
-    setProducts(prev => prev.map(p => p.id === updatedProduct.id ? updatedProduct : p));
-  };
+    const deleteProduct = (productId: number) => {
+        setProducts(prev => prev.filter(p => p.id !== productId));
+    };
 
-  const deleteProduct = async (productId: number) => {
-    await apiCall(`${API_BASE_URL}/products/${productId}`, 'DELETE');
-    setProducts(prev => prev.filter(p => p.id !== productId));
-  };
-  
-  // Categories
-  const addMainCategory = async (catData: Omit<MainCategory, 'id'>) => {
-    const newCat = await apiCall(`${API_BASE_URL}/categories/main`, 'POST', catData);
-    setMainCategories(prev => [...prev, newCat]);
-  };
+    // Main Category CRUD
+    const addMainCategory = (catData: Omit<MainCategory, 'id'>) => {
+        const newId = mainCategories.length > 0 ? Math.max(...mainCategories.map(c => c.id)) + 1 : 1;
+        const newCat: MainCategory = { ...catData, id: newId };
+        setMainCategories(prev => [...prev, newCat]);
+    };
 
-  const updateMainCategory = async (catData: MainCategory) => {
-    const updatedCat = await apiCall(`${API_BASE_URL}/categories/main/${catData.id}`, 'PUT', catData);
-    setMainCategories(prev => prev.map(c => c.id === updatedCat.id ? updatedCat : c));
-  };
+    const updateMainCategory = (catData: MainCategory) => {
+        setMainCategories(prev => prev.map(c => c.id === catData.id ? catData : c));
+    };
 
-  const deleteMainCategory = async (catId: number) => {
-    await apiCall(`${API_BASE_URL}/categories/main/${catId}`, 'DELETE');
-    // We need to refetch data to reflect cascading deletes on subcats and products
-    fetchInitialData();
-  };
+    const deleteMainCategory = (catId: number) => {
+        const subCatIdsToDelete = subcategories.filter(sc => sc.mainCategoryId === catId).map(sc => sc.id);
+        setProducts(prev => prev.filter(p => !subCatIdsToDelete.includes(p.subCategoryId)));
+        setSubcategories(prev => prev.filter(sc => sc.mainCategoryId !== catId));
+        setMainCategories(prev => prev.filter(c => c.id !== catId));
+    };
 
-  // Subcategories
-  const addSubcategory = async (subCatData: Omit<Subcategory, 'id'>) => {
-    const newSubCat = await apiCall(`${API_BASE_URL}/categories/sub`, 'POST', subCatData);
-    setSubcategories(prev => [...prev, newSubCat]);
-  };
+    // Subcategory CRUD
+    const addSubcategory = (subCatData: Omit<Subcategory, 'id'>) => {
+        const newId = subcategories.length > 0 ? Math.max(...subcategories.map(sc => sc.id)) + 1 : 1;
+        const newSubCat: Subcategory = { ...subCatData, id: newId };
+        setSubcategories(prev => [...prev, newSubCat]);
+    };
 
-  const updateSubcategory = async (subCatData: Subcategory) => {
-    const updatedSubCat = await apiCall(`${API_BASE_URL}/categories/sub/${subCatData.id}`, 'PUT', subCatData);
-    setSubcategories(prev => prev.map(sc => sc.id === updatedSubCat.id ? updatedSubCat : sc));
-  };
+    const updateSubcategory = (subCatData: Subcategory) => {
+        setSubcategories(prev => prev.map(sc => sc.id === subCatData.id ? subCatData : sc));
+    };
 
-  const deleteSubcategory = async (subCatId: number) => {
-    await apiCall(`${API_BASE_URL}/categories/sub/${subCatId}`, 'DELETE');
-    // Refetch to reflect cascading product deletes
-    fetchInitialData();
-  };
+    const deleteSubcategory = (subCatId: number) => {
+        setProducts(prev => prev.filter(p => p.subCategoryId !== subCatId));
+        setSubcategories(prev => prev.filter(sc => sc.id !== subCatId));
+    };
 
-  // Orders
-  const addOrder = async (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>): Promise<Order | null> => {
-    try {
-        const newOrder = await apiCall(`${API_BASE_URL}/orders`, 'POST', orderData);
+    // Order Management
+    const addOrder = (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>): Order => {
+        const newOrder: Order = {
+            ...orderData,
+            id: `MEDUSA-${Math.floor(Math.random() * 900000) + 100000}`,
+            timestamp: new Date().toISOString(),
+            status: 'تحت المراجعة',
+        };
         setOrders(prev => [newOrder, ...prev]);
         return newOrder;
-    } catch (err) {
-        console.error(err);
-        return null;
-    }
-  };
+    };
 
-  const updateOrderStatus = async (orderId: string, status: OrderStatus) => {
-    await apiCall(`${API_BASE_URL}/orders/${orderId}`, 'PUT', { status });
-    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
-  };
+    const updateOrderStatus = (orderId: string, status: OrderStatus) => {
+        setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
+    };
 
-  // Auth
-  const login = async (password: string): Promise<boolean> => {
-    try {
-        await apiCall(`${API_BASE_URL}/auth/login`, 'POST', { password });
-        setIsLoggedIn(true);
-        return true;
-    } catch (err) {
+    // Auth
+    const login = (password: string): boolean => {
+        if (password === 'admin123') { // Simple password check
+            setIsLoggedIn(true);
+            return true;
+        }
         return false;
-    }
-  };
+    };
 
-  const logout = () => {
-    setIsLoggedIn(false);
-  };
-  
-  // Cart (remains client-side)
-  const addToCart = (item: Omit<CartItem, 'id' | 'quantity'>) => {
-    const cartItemId = `${item.productId}-${item.selectedColor.name}-${item.selectedSize}`;
-    const existingItem = cart.find(i => i.id === cartItemId);
+    const logout = () => {
+        setIsLoggedIn(false);
+    };
 
-    if (existingItem) {
-        updateCartItemQuantity(cartItemId, existingItem.quantity + 1);
-    } else {
-        const newItem: CartItem = { ...item, id: cartItemId, quantity: 1 };
-        setCart(prev => [...prev, newItem]);
-    }
-  };
+    // Cart Management
+    const addToCart = (item: Omit<CartItem, 'id' | 'quantity'>) => {
+        const cartItemId = `${item.productId}-${item.selectedColor.name}-${item.selectedSize}`;
+        const existingItem = cart.find(i => i.id === cartItemId);
 
-  const removeFromCart = (itemId: string) => {
-    setCart(prev => prev.filter(item => item.id !== itemId));
-  };
+        if (existingItem) {
+            updateCartItemQuantity(cartItemId, existingItem.quantity + 1);
+        } else {
+            const newItem: CartItem = { ...item, id: cartItemId, quantity: 1 };
+            setCart(prev => [...prev, newItem]);
+        }
+    };
 
-  const updateCartItemQuantity = (itemId: string, quantity: number) => {
-    if (quantity < 1) {
-        removeFromCart(itemId);
-        return;
-    }
-    setCart(prev => prev.map(item => item.id === itemId ? { ...item, quantity } : item));
-  };
+    const removeFromCart = (itemId: string) => {
+        setCart(prev => prev.filter(item => item.id !== itemId));
+    };
 
-  const clearCart = () => {
-    setCart([]);
-  };
+    const updateCartItemQuantity = (itemId: string, quantity: number) => {
+        if (quantity < 1) {
+            removeFromCart(itemId);
+            return;
+        }
+        setCart(prev => prev.map(item => item.id === itemId ? { ...item, quantity } : item));
+    };
 
-  const contextValue: AppContextType = {
-    products, mainCategories, subcategories, orders, isLoggedIn, cart, isLoading, error,
-    addProduct, updateProduct, deleteProduct,
-    addMainCategory, updateMainCategory, deleteMainCategory,
-    addSubcategory, updateSubcategory, deleteSubcategory,
-    addOrder, updateOrderStatus,
-    fetchInitialData,
-    login, logout,
-    addToCart, removeFromCart, updateCartItemQuantity, clearCart
-  };
+    const clearCart = () => {
+        setCart([]);
+    };
 
-  return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
+    const contextValue: AppContextType = {
+        products, mainCategories, subcategories, orders, isLoggedIn, cart,
+        addProduct, updateProduct, deleteProduct,
+        addMainCategory, updateMainCategory, deleteMainCategory,
+        addSubcategory, updateSubcategory, deleteSubcategory,
+        addOrder, updateOrderStatus,
+        login, logout,
+        addToCart, removeFromCart, updateCartItemQuantity, clearCart
+    };
+
+    return <AppContext.Provider value={contextValue}>{children}</AppContext.Provider>;
 };
