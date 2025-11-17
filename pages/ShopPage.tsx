@@ -11,31 +11,32 @@ const ShopPage: React.FC = () => {
 
     const getInitialSubCat = () => {
         const params = new URLSearchParams(location.search);
-        return params.get('sub_cat') || null;
+        const subCatId = params.get('sub_cat');
+        return subCatId ? parseInt(subCatId, 10) : null;
     }
 
-    const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<string | null>(getInitialSubCat());
+    const [selectedSubcategoryId, setSelectedSubcategoryId] = useState<number | null>(getInitialSubCat());
 
      useEffect(() => {
         const params = new URLSearchParams(location.search);
         const subCatId = params.get('sub_cat');
-        setSelectedSubcategoryId(subCatId);
+        setSelectedSubcategoryId(subCatId ? parseInt(subCatId, 10) : null);
     }, [location.search]);
 
 
     const filteredProducts = useMemo(() => {
         const availableProducts = products.filter(p => p.isAvailable);
-        if (!selectedSubcategoryId) {
+        if (selectedSubcategoryId === null) {
             return availableProducts;
         }
         return availableProducts.filter(p => p.subCategoryId === selectedSubcategoryId);
     }, [products, selectedSubcategoryId]);
 
-    const handleSubcategorySelect = (subcategoryId: string | null) => {
+    const handleSubcategorySelect = (subcategoryId: number | null) => {
         setSelectedSubcategoryId(subcategoryId);
         const params = new URLSearchParams(location.search);
-        if(subcategoryId) {
-            params.set('sub_cat', subcategoryId);
+        if(subcategoryId !== null) {
+            params.set('sub_cat', subcategoryId.toString());
         } else {
             params.delete('sub_cat');
         }
@@ -55,7 +56,7 @@ const ShopPage: React.FC = () => {
             <div className="space-y-4">
                 <button 
                     onClick={() => handleSubcategorySelect(null)}
-                    className={`w-full text-right pr-4 py-2 rounded-md text-sm font-medium ${!selectedSubcategoryId ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
+                    className={`w-full text-right pr-4 py-2 rounded-md text-sm font-medium ${selectedSubcategoryId === null ? 'bg-black text-white' : 'hover:bg-gray-100'}`}
                 >
                     كل المنتجات
                 </button>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useContext, useEffect } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, AppContext } from './context/AppContext';
 import type { AppContextType } from './types';
@@ -21,11 +21,23 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
     return isLoggedIn ? <>{children}</> : <Navigate to="/admin/login" />;
 };
 
-function App() {
-  return (
-    <AppProvider>
-      <HashRouter>
-        <Routes>
+const AppContent: React.FC = () => {
+    const { isLoading, error, fetchInitialData } = useContext(AppContext) as AppContextType;
+
+    useEffect(() => {
+        fetchInitialData();
+    }, []);
+
+    if (isLoading) {
+        return <div className="flex justify-center items-center h-screen bg-white text-black">جاري تحميل البيانات...</div>;
+    }
+    
+    if (error) {
+         return <div className="flex justify-center items-center h-screen bg-white text-red-500">{error}</div>;
+    }
+
+    return (
+         <Routes>
           <Route path="/" element={<Layout />}>
             <Route index element={<HomePage />} />
             <Route path="shop" element={<ShopPage />} />
@@ -48,6 +60,15 @@ function App() {
           />
            <Route path="/admin" element={<Navigate to="/admin/login" replace />} />
         </Routes>
+    )
+}
+
+
+function App() {
+  return (
+    <AppProvider>
+      <HashRouter>
+        <AppContent />
       </HashRouter>
     </AppProvider>
   );

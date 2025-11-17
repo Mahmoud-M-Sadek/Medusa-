@@ -9,6 +9,7 @@ const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const [customer, setCustomer] = useState({ name: '', phone: '', address: '' });
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (cart.length === 0 && !placedOrder) {
@@ -22,12 +23,13 @@ const CheckoutPage: React.FC = () => {
     setCustomer(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleCheckout = (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customer.name || !customer.phone || !customer.address) {
       alert('يرجى ملء جميع الحقول.');
       return;
     }
+    setIsProcessing(true);
 
     const orderItems = cart.map(item => ({
       productId: item.productId,
@@ -38,47 +40,51 @@ const CheckoutPage: React.FC = () => {
       quantity: item.quantity,
     }));
     
-    // Add to local storage orders
-    const newOrder = addOrder({
-        customerName: customer.name,
-        customerPhone: customer.phone,
-        customerAddress: customer.address,
-        items: orderItems,
-        totalPrice: total,
-    });
-    
-    // Create WhatsApp message
-    let message = `
-طلب جديد من Medusa:
-*رقم الطلب: ${newOrder.id}*
--------------------
-*بيانات العميل:*
-- الاسم: ${customer.name}
-- رقم الموبايل: ${customer.phone}
-- العنوان: ${customer.address}
--------------------
-*المنتجات المطلوبة:*
-`;
-    cart.forEach(item => {
+    try {
+        const newOrder = await addOrder({
+            customerName: customer.name,
+            customerPhone: customer.phone,
+            customerAddress: customer.address,
+            items: orderItems,
+            totalPrice: total,
+        });
+        
+        let message = `
+    طلب جديد من Medusa:
+    *رقم الطلب: ${newOrder.id}*
+    -------------------
+    *بيانات العميل:*
+    - الاسم: ${customer.name}
+    - رقم الموبايل: ${customer.phone}
+    - العنوان: ${customer.address}
+    -------------------
+    *المنتجات المطلوبة:*
+    `;
+        cart.forEach(item => {
+            message += `
+    - *المنتج*: ${item.name}
+      - *اللون*: ${item.selectedColor.name}
+      - *المقاس*: ${item.selectedSize}
+      - *الكمية*: ${item.quantity}
+      - *السعر*: ${item.price * item.quantity} جنيه
+    `;
+        });
         message += `
-- *المنتج*: ${item.name}
-  - *اللون*: ${item.selectedColor.name}
-  - *المقاس*: ${item.selectedSize}
-  - *الكمية*: ${item.quantity}
-  - *السعر*: ${item.price * item.quantity} جنيه
-`;
-    });
-    message += `
--------------------
-*الإجمالي: ${total} جنيه*
-`;
+    -------------------
+    *الإجمالي: ${total} جنيه*
+    `;
 
-    const whatsappUrl = `https://wa.me/201555414422?text=${encodeURIComponent(message.trim())}`;
-    
-    // Clear cart and update state
-    clearCart();
-    setPlacedOrder(newOrder);
-    window.open(whatsappUrl, '_blank');
+        const whatsappUrl = `https://wa.me/201555414422?text=${encodeURIComponent(message.trim())}`;
+        
+        clearCart();
+        setPlacedOrder(newOrder);
+        window.open(whatsappUrl, '_blank');
+
+    } catch (error) {
+        alert('حدث خطأ أثناء إنشاء الطلب. يرجى المحاولة مرة أخرى.');
+    } finally {
+        setIsProcessing(false);
+    }
   };
 
   if (placedOrder) {
@@ -136,19 +142,19 @@ const CheckoutPage: React.FC = () => {
           <form onSubmit={handleCheckout} className="space-y-4">
             <div>
               <label htmlFor="name" className="text-sm font-medium">الاسم بالكامل</label>
-              <input type="text" id="name" name="name" value={customer.name} onChange={handleChange} required className="w-full rounded-lg border-gray-200 p-3 text-sm" />
+              <input type="text" id="name" name="name" value={customer.name} onChange={handleChange} required className="w-full rounded-lg border-gray-200 p-3 text-sm" disabled={isProcessing} />
             </div>
             <div>
               <label htmlFor="phone" className="text-sm font-medium">رقم الموبايل</label>
-              <input type="tel" id="phone" name="phone" value={customer.phone} onChange={handleChange} required className="w-full rounded-lg border-gray-200 p-3 text-sm" />
+              <input type="tel" id="phone" name="phone" value={customer.phone} onChange={handleChange} required className="w-full rounded-lg border-gray-200 p-3 text-sm" disabled={isProcessing} />
             </div>
             <div>
               <label htmlFor="address" className="text-sm font-medium">العنوان بالتفصيل</label>
-              <textarea id="address" name="address" rows={4} value={customer.address} onChange={handleChange} required className="w-full rounded-lg border-gray-200 p-3 text-sm"></textarea>
+              <textarea id="address" name="address" rows={4} value={customer.address} onChange={handleChange} required className="w-full rounded-lg border-gray-200 p-3 text-sm" disabled={isProcessing}></textarea>
             </div>
-            <button type="submit" className="flex w-full items-center justify-center gap-3 rounded-md bg-black px-8 py-3 text-white transition hover:bg-gray-800">
+            <button type="submit" className="flex w-full items-center justify-center gap-3 rounded-md bg-black px-8 py-3 text-white transition hover:bg-gray-800 disabled:opacity-50" disabled={isProcessing}>
               <WhatsAppIcon className="w-5 h-5" />
-              <span className="text-sm font-medium">تأكيد الطلب عبر واتساب</span>
+              <span className="text-sm font-medium">{isProcessing ? 'جاري إنشاء الطلب...' : 'تأكيد الطلب عبر واتساب'}</span>
             </button>
           </form>
         </div>

@@ -1,19 +1,19 @@
-// FIX: Import Dispatch and SetStateAction to be used in type definitions.
+// This file is intentionally blank as the logic has been moved to AppContext.tsx for API integration.
 import type { Dispatch, SetStateAction } from 'react';
 
 export interface ColorVariant {
   name: string;
   colorCode: string;
-  images: string[]; // Array of base64 strings
+  images: string[]; // Array of image URLs
 }
 
 export interface Product {
-  id: string;
+  id: number;
   name: string;
   description: string;
   price: number;
   originalPrice?: number; // For sales
-  subCategoryId: string;
+  subCategoryId: number;
   isAvailable: boolean;
   colorVariants: ColorVariant[];
   sizes: string[];
@@ -22,20 +22,20 @@ export interface Product {
 }
 
 export interface MainCategory {
-  id:string;
+  id: number;
   name: string;
   image: string;
 }
 
 export interface Subcategory {
-    id: string;
+    id: number;
     name: string;
-    mainCategoryId: string;
+    mainCategoryId: number;
 }
 
 export interface CartItem {
   id: string; // Unique identifier for the cart item, e.g., `${productId}-${color}-${size}`
-  productId: string;
+  productId: number;
   name: string;
   price: number;
   image: string;
@@ -45,7 +45,7 @@ export interface CartItem {
 }
 
 export interface OrderItem {
-  productId: string;
+  productId: number;
   name: string;
   price: number;
   color: string;
@@ -54,7 +54,6 @@ export interface OrderItem {
 }
 
 export type OrderStatus = 'تحت المراجعة' | 'تم التأكيد' | 'تم الشحن' | 'تم التوصيل' | 'ملغي';
-
 
 export interface Order {
     id: string;
@@ -67,24 +66,40 @@ export interface Order {
     status: OrderStatus;
 }
 
-
 export interface AppContextType {
+  // State
   products: Product[];
-  // FIX: Replaced React.Dispatch and React.SetStateAction with imported types.
-  setProducts: Dispatch<SetStateAction<Product[]>>;
   mainCategories: MainCategory[];
-  // FIX: Replaced React.Dispatch and React.SetStateAction with imported types.
-  setMainCategories: Dispatch<SetStateAction<MainCategory[]>>;
   subcategories: Subcategory[];
-  // FIX: Replaced React.Dispatch and React.SetStateAction with imported types.
-  setSubcategories: Dispatch<SetStateAction<Subcategory[]>>;
   orders: Order[];
-  addOrder: (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>) => Order;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
   isLoggedIn: boolean;
-  login: (password: string) => boolean;
-  logout: () => void;
   cart: CartItem[];
+  isLoading: boolean;
+  error: string | null;
+
+  // Async Data Operations
+  fetchInitialData: () => Promise<void>;
+  
+  addProduct: (productData: Omit<Product, 'id'>) => Promise<Product>;
+  updateProduct: (productData: Product) => Promise<Product>;
+  deleteProduct: (productId: number) => Promise<void>;
+
+  addMainCategory: (catData: Omit<MainCategory, 'id'>) => Promise<MainCategory>;
+  updateMainCategory: (catData: MainCategory) => Promise<MainCategory>;
+  deleteMainCategory: (catId: number) => Promise<void>;
+
+  addSubcategory: (subCatData: Omit<Subcategory, 'id'>) => Promise<Subcategory>;
+  updateSubcategory: (subCatData: Subcategory) => Promise<Subcategory>;
+  deleteSubcategory: (subCatId: number) => Promise<void>;
+  
+  addOrder: (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>) => Promise<Order>;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+
+  // Auth
+  login: (password: string) => Promise<boolean>;
+  logout: () => void;
+  
+  // Cart
   addToCart: (item: Omit<CartItem, 'id' | 'quantity'>) => void;
   removeFromCart: (itemId: string) => void;
   updateCartItemQuantity: (itemId: string, quantity: number) => void;

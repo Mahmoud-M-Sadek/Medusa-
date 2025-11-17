@@ -64,8 +64,13 @@ const ProductDetailPage: React.FC = () => {
   const { productId } = useParams<{ productId: string }>();
   const { products, mainCategories, subcategories, addToCart } = useContext(AppContext) as AppContextType;
   const navigate = useNavigate();
+  
+  const numericProductId = productId ? parseInt(productId, 10) : NaN;
 
-  const product = useMemo(() => products.find(p => p.id === productId), [products, productId]);
+  const product = useMemo(() => 
+    !isNaN(numericProductId) ? products.find(p => p.id === numericProductId) : undefined, 
+    [products, numericProductId]
+  );
   
   const { mainCategory, subCategory } = useMemo(() => {
     if (!product) return { mainCategory: null, subCategory: null };
@@ -182,11 +187,13 @@ const ProductDetailPage: React.FC = () => {
               <button
                 onClick={handleAddToCart}
                 disabled={!product.isAvailable}
-                className="flex w-full items-center justify-center gap-3 rounded-md bg-black px-8 py-3 text-white transition hover:bg-gray-800 disabled:bg-gray-400 disabled:cursor-not-allowed"
+                className="flex w-full items-center justify-center gap-2 rounded-md bg-black px-8 py-3 text-white transition hover:bg-gray-800 disabled:opacity-50"
               >
-                {product.isAvailable ? <><ShoppingCartIcon className="w-5 h-5" /><span className="text-sm font-medium">أضف إلى السلة</span></> : 'غير متاح حاليًا'}
+                <ShoppingCartIcon />
+                {product.isAvailable ? 'إضافة إلى السلة' : 'غير متاح'}
               </button>
             </div>
+            
           </div>
         </div>
       </div>

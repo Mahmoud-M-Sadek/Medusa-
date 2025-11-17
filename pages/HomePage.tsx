@@ -68,13 +68,15 @@ const CategorySection: React.FC = () => {
 const PopularSubcategoriesSection: React.FC = () => {
     const { subcategories } = useContext(AppContext) as AppContextType;
     // For demonstration, we'll just pick a few popular ones. In a real app, this would be dynamic.
-    const popular = subcategories.filter(sc => ['s1', 's4', 's6'].includes(sc.id));
+    // FIX: Use numeric IDs to match the Subcategory type.
+    const popular = subcategories.filter(sc => [1, 4, 6].includes(sc.id));
     if(popular.length === 0) return null;
     
-    const subCatImages: {[key: string]: string} = {
-        's1': 'https://picsum.photos/seed/subcat1/600/600',
-        's4': 'https://picsum.photos/seed/subcat2/600/600',
-        's6': 'https://picsum.photos/seed/subcat3/600/600',
+    // FIX: Use number keys to match the Subcategory ID type.
+    const subCatImages: {[key: number]: string} = {
+        1: 'https://picsum.photos/seed/subcat1/600/600',
+        4: 'https://picsum.photos/seed/subcat2/600/600',
+        6: 'https://picsum.photos/seed/subcat3/600/600',
     };
 
     return (
