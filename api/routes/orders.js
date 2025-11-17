@@ -2,20 +2,45 @@ const express = require('express');
 const db = require('../db');
 const router = express.Router();
 
-// Get all orders
+// Get all orders using an efficient single query
 router.get('/', async (req, res) => {
+    const query = `
+        SELECT
+            o.id,
+            o.timestamp,
+            o.customer_name as "customerName",
+            o.customer_phone as "customerPhone",
+            o.customer_address as "customerAddress",
+            o.total_price as "totalPrice",
+            o.status,
+            (
+                SELECT COALESCE(json_agg(json_build_object(
+                    'productId', oi.product_id,
+                    'name', oi.name,
+                    'price', oi.price,
+                    'color', oi.color,
+                    'size', oi.size,
+                    'quantity', oi.quantity
+                ) ORDER BY oi.id), '[]'::json)
+                FROM order_items oi
+                WHERE oi.order_id = o.id
+            ) as items
+        FROM
+            orders o
+        ORDER BY
+            o.timestamp DESC;
+    `;
     try {
-        const ordersResult = await db.query('SELECT id, timestamp, customer_name as "customerName", customer_phone as "customerPhone", customer_address as "customerAddress", total_price as "totalPrice", status FROM orders ORDER BY timestamp DESC');
-        const itemsResult = await db.query('SELECT order_id, name, price, color, size, quantity, product_id as "productId" FROM order_items');
-        
-        const ordersWithItems = ordersResult.rows.map(order => ({
-            ...order,
-            items: itemsResult.rows.filter(item => item.order_id === order.id).map(({ order_id, ...item }) => item)
+        const { rows } = await db.query(query);
+         // Ensure price fields are numbers
+        const orders = rows.map(o => ({
+            ...o,
+            totalPrice: parseFloat(o.totalPrice),
+            items: o.items.map(item => ({...item, price: parseFloat(item.price)}))
         }));
-
-        res.json(ordersWithItems);
+        res.json(orders);
     } catch (err) {
-        console.error(err.message);
+        console.error("Error fetching orders:", err.message);
         res.status(500).send('Server error');
     }
 });
@@ -52,7 +77,7 @@ router.post('/', async (req, res) => {
             customerPhone: newOrder.customer_phone,
             customerAddress: newOrder.customer_address,
             items: items,
-            totalPrice: newOrder.total_price,
+            totalPrice: parseFloat(newOrder.total_price),
             status: newOrder.status
         });
 

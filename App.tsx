@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useContext } from 'react';
 import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, AppContext } from './context/AppContext';
 import type { AppContextType } from './types';
@@ -22,6 +22,20 @@ const AdminRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
 };
 
 const AppContent: React.FC = () => {
+    const { isLoading, error, fetchInitialData } = useContext(AppContext) as AppContextType;
+
+    useEffect(() => {
+        fetchInitialData();
+    }, []);
+
+    if (isLoading) {
+        return <div className="flex justify-center items-center h-screen bg-white text-black">جاري تحميل البيانات...</div>;
+    }
+
+    if (error) {
+        return <div className="flex justify-center items-center h-screen bg-white text-red-500">{error}</div>;
+    }
+    
     return (
          <Routes>
           <Route path="/" element={<Layout />}>

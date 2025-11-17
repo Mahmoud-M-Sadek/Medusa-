@@ -1,6 +1,7 @@
 import type { Dispatch, SetStateAction } from 'react';
 
 export interface ColorVariant {
+  id?: number; // Optional for new variants
   name: string;
   colorCode: string;
   images: string[]; // Array of image URLs
@@ -73,25 +74,29 @@ export interface AppContextType {
   orders: Order[];
   isLoggedIn: boolean;
   cart: CartItem[];
+  isLoading: boolean;
+  error: string | null;
 
-  // Sync Data Operations
-  addProduct: (productData: Omit<Product, 'id'>) => void;
-  updateProduct: (productData: Product) => void;
-  deleteProduct: (productId: number) => void;
+  // Async Data Operations
+  addProduct: (productData: Omit<Product, 'id'>) => Promise<void>;
+  updateProduct: (productData: Product) => Promise<void>;
+  deleteProduct: (productId: number) => Promise<void>;
 
-  addMainCategory: (catData: Omit<MainCategory, 'id'>) => void;
-  updateMainCategory: (catData: MainCategory) => void;
-  deleteMainCategory: (catId: number) => void;
+  addMainCategory: (catData: Omit<MainCategory, 'id'>) => Promise<void>;
+  updateMainCategory: (catData: MainCategory) => Promise<void>;
+  deleteMainCategory: (catId: number) => Promise<void>;
 
-  addSubcategory: (subCatData: Omit<Subcategory, 'id'>) => void;
-  updateSubcategory: (subCatData: Subcategory) => void;
-  deleteSubcategory: (subCatId: number) => void;
+  addSubcategory: (subCatData: Omit<Subcategory, 'id'>) => Promise<void>;
+  updateSubcategory: (subCatData: Subcategory) => Promise<void>;
+  deleteSubcategory: (subCatId: number) => Promise<void>;
   
-  addOrder: (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>) => Order;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
+  addOrder: (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>) => Promise<Order | null>;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  
+  fetchInitialData: () => Promise<void>;
 
   // Auth
-  login: (password: string) => boolean;
+  login: (password: string) => Promise<boolean>;
   logout: () => void;
   
   // Cart

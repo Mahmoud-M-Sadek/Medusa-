@@ -13,6 +13,7 @@ const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) 
 
 const ProductForm: React.FC<{ productToEdit?: Product; onFormSubmit: () => void; onCancel: () => void; }> = ({ productToEdit, onFormSubmit, onCancel }) => {
     const { mainCategories, subcategories, addProduct, updateProduct } = useContext(AppContext) as AppContextType;
+    const [isLoading, setIsLoading] = useState(false);
     
     const [product, setProduct] = useState<Omit<Product, 'id'>>({
         name: '', description: '', price: 0, originalPrice: undefined, subCategoryId: 0, isAvailable: true,
@@ -69,7 +70,7 @@ const ProductForm: React.FC<{ productToEdit?: Product; onFormSubmit: () => void;
         setProduct(prev => ({ ...prev, sizes }));
     };
     
-    const handleColorChange = (index: number, field: keyof Omit<ColorVariant, 'images'>, value: string) => {
+    const handleColorChange = (index: number, field: keyof Omit<ColorVariant, 'images' | 'id'>, value: string) => {
         const newVariants = [...product.colorVariants];
         (newVariants[index] as any)[field] = value;
         setProduct(prev => ({ ...prev, colorVariants: newVariants }));
@@ -99,22 +100,25 @@ const ProductForm: React.FC<{ productToEdit?: Product; onFormSubmit: () => void;
         setProduct(prev => ({ ...prev, colorVariants: prev.colorVariants.filter((_, i) => i !== index) }));
     };
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if(!product.subCategoryId) {
             alert('يرجى اختيار قسم فرعي.');
             return;
         }
+        setIsLoading(true);
         try {
             if (productToEdit) {
-                updateProduct({ ...product, id: productToEdit.id });
+                await updateProduct({ ...product, id: productToEdit.id });
             } else {
-                addProduct(product);
+                await addProduct(product);
             }
             onFormSubmit();
         } catch (error) {
             console.error(error);
             alert('حدث خطأ أثناء حفظ المنتج.');
+        } finally {
+            setIsLoading(false);
         }
     };
     
@@ -174,8 +178,8 @@ const ProductForm: React.FC<{ productToEdit?: Product; onFormSubmit: () => void;
             
             <div className="flex justify-end gap-4 border-t pt-4">
                 <button type="button" onClick={onCancel} className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm border border-gray-300">إلغاء</button>
-                <button type="submit" className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm">
-                    {productToEdit ? 'حفظ التعديلات' : 'إضافة المنتج'}
+                <button type="submit" disabled={isLoading} className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm disabled:opacity-50">
+                    {isLoading ? 'جاري الحفظ...' : (productToEdit ? 'حفظ التعديلات' : 'إضافة المنتج')}
                 </button>
             </div>
         </form>
@@ -186,22 +190,24 @@ const MainCategoryManager: React.FC = () => {
     const { mainCategories, addMainCategory, updateMainCategory, deleteMainCategory, subcategories, products } = useContext(AppContext) as AppContextType;
     const [name, setName] = useState('');
     const [image, setImage] = useState('');
+    const [isLoading, setIsLoading] = useState(false);
     const [editingCategory, setEditingCategory] = useState<MainCategory | null>(null);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if(!name || !image) return;
+        setIsLoading(true);
         try {
             if (editingCategory) {
-                updateMainCategory({ ...editingCategory, name, image });
+                await updateMainCategory({ ...editingCategory, name, image });
             } else {
-                addMainCategory({ name, image });
+                await addMainCategory({ name, image });
             }
-            setName('');
-            setImage('');
-            setEditingCategory(null);
+            resetForm();
         } catch (error) {
             alert('حدث خطأ');
+        } finally {
+            setIsLoading(false);
         }
     }
     
@@ -217,9 +223,9 @@ const MainCategoryManager: React.FC = () => {
         setImage(category.image);
     }
 
-    const handleDelete = (id: number) => {
+    const handleDelete = async (id: number) => {
         if(window.confirm('هل أنت متأكد من حذف هذا القسم؟ سيتم حذف الأقسام الفرعية والمنتجات المرتبطة به.')) {
-            deleteMainCategory(id);
+            await deleteMainCategory(id);
         }
     }
 
@@ -244,8 +250,8 @@ const MainCategoryManager: React.FC = () => {
                     <input type="file" accept="image/*" onChange={e => handleImageUpload(e.target.files ? e.target.files[0] : null)} className="w-full text-sm" />
                     {image && <img src={image} alt="preview" className="w-24 h-24 mt-2 object-cover rounded-md"/>}
                 </div>
-                <button type="submit" className="w-full rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm">
-                    {editingCategory ? 'حفظ التعديلات' : 'إضافة'}
+                <button type="submit" disabled={isLoading} className="w-full rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm disabled:opacity-50">
+                    {isLoading ? 'جاري الحفظ...' : (editingCategory ? 'حفظ التعديلات' : 'إضافة')}
                 </button>
                 {editingCategory && <button type="button" onClick={resetForm} className="w-full mt-2 text-center text-sm">إلغاء التعديل</button>}
             </form>
@@ -276,19 +282,25 @@ const SubcategoryManager: React.FC = () => {
     const { mainCategories, subcategories, addSubcategory, updateSubcategory, deleteSubcategory, products } = useContext(AppContext) as AppContextType;
     const [name, setName] = useState('');
     const [mainCategoryId, setMainCategoryId] = useState(mainCategories[0]?.id || 0);
+    const [isLoading, setIsLoading] = useState(false);
     const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null);
 
-    const handleSubmit = (e: React.FormEvent) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || !mainCategoryId) return;
-        
-        if (editingSubcategory) {
-            updateSubcategory({ ...editingSubcategory, name, mainCategoryId });
-        } else {
-            addSubcategory({ name, mainCategoryId });
+        setIsLoading(true);
+        try {
+            if (editingSubcategory) {
+                await updateSubcategory({ ...editingSubcategory, name, mainCategoryId });
+            } else {
+                await addSubcategory({ name, mainCategoryId });
+            }
+            resetForm();
+        } catch (err) {
+            alert('حدث خطأ');
+        } finally {
+            setIsLoading(false);
         }
-        setName('');
-        setEditingSubcategory(null);
     }
 
     const handleEdit = (subcategory: Subcategory) => {
@@ -297,9 +309,9 @@ const SubcategoryManager: React.FC = () => {
         setMainCategoryId(subcategory.mainCategoryId);
     }
 
-    const handleDelete = (id: number) => {
+    const handleDelete = async (id: number) => {
         if (window.confirm('هل أنت متأكد من حذف هذا القسم الفرعي؟ سيتم حذف المنتجات المرتبطة به.')) {
-            deleteSubcategory(id);
+            await deleteSubcategory(id);
         }
     }
     
@@ -322,8 +334,8 @@ const SubcategoryManager: React.FC = () => {
                     <option value={0} disabled>اختر القسم الرئيسي</option>
                     {mainCategories.map(mc => <option key={mc.id} value={mc.id}>{mc.name}</option>)}
                 </select>
-                <button type="submit" className="w-full rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm">
-                    {editingSubcategory ? 'حفظ التعديلات' : 'إضافة'}
+                <button type="submit" disabled={isLoading} className="w-full rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm disabled:opacity-50">
+                    {isLoading ? 'جاري الحفظ...' : (editingSubcategory ? 'حفظ التعديلات' : 'إضافة')}
                 </button>
                 {editingSubcategory && <button type="button" onClick={resetForm} className="w-full mt-2 text-center text-sm">إلغاء التعديل</button>}
             </form>
@@ -366,9 +378,13 @@ const AdminDashboardPage: React.FC = () => {
         navigate('/');
     };
     
-    const handleDeleteProduct = (id: number) => {
+    const handleDeleteProduct = async (id: number) => {
         if(window.confirm('هل أنت متأكد من حذف هذا المنتج؟')) {
-            deleteProduct(id);
+            try {
+                await deleteProduct(id);
+            } catch (err) {
+                alert('فشل حذف المنتج');
+            }
         }
     };
 
@@ -472,7 +488,7 @@ const AdminDashboardPage: React.FC = () => {
                                             </div>
                                             <div className="text-left">
                                                 <p className="font-bold">الإجمالي: {order.totalPrice} جنيه</p>
-                                                <p className="text-xs text-gray-500">تاريخ الطلب: {order.timestamp}</p>
+                                                <p className="text-xs text-gray-500">تاريخ الطلب: {new Date(order.timestamp).toLocaleString('ar-EG')}</p>
                                                 <div className="mt-2">
                                                     <label htmlFor={`status-${order.id}`} className="sr-only">حالة الطلب</label>
                                                     <select

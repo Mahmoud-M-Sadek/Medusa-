@@ -9,6 +9,7 @@ const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
   const [customer, setCustomer] = useState({ name: '', phone: '', address: '' });
   const [placedOrder, setPlacedOrder] = useState<Order | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
     if (cart.length === 0 && !placedOrder) {
@@ -22,12 +23,14 @@ const CheckoutPage: React.FC = () => {
     setCustomer(prev => ({ ...prev, [e.target.name]: e.target.value }));
   };
 
-  const handleCheckout = (e: React.FormEvent) => {
+  const handleCheckout = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!customer.name || !customer.phone || !customer.address) {
       alert('يرجى ملء جميع الحقول.');
       return;
     }
+
+    setIsProcessing(true);
 
     const orderItems = cart.map(item => ({
       productId: item.productId,
@@ -39,7 +42,7 @@ const CheckoutPage: React.FC = () => {
     }));
     
     try {
-        const newOrder = addOrder({
+        const newOrder = await addOrder({
             customerName: customer.name,
             customerPhone: customer.phone,
             customerAddress: customer.address,
@@ -47,6 +50,10 @@ const CheckoutPage: React.FC = () => {
             totalPrice: total,
         });
         
+        if (!newOrder) {
+          throw new Error("Failed to create order");
+        }
+
         let message = `
     طلب جديد من Medusa:
     *رقم الطلب: ${newOrder.id}*
@@ -80,6 +87,8 @@ const CheckoutPage: React.FC = () => {
 
     } catch (error) {
         alert('حدث خطأ أثناء إنشاء الطلب. يرجى المحاولة مرة أخرى.');
+    } finally {
+        setIsProcessing(false);
     }
   };
 
@@ -148,9 +157,11 @@ const CheckoutPage: React.FC = () => {
               <label htmlFor="address" className="text-sm font-medium">العنوان بالتفصيل</label>
               <textarea id="address" name="address" rows={4} value={customer.address} onChange={handleChange} required className="w-full rounded-lg border-gray-200 p-3 text-sm"></textarea>
             </div>
-            <button type="submit" className="flex w-full items-center justify-center gap-3 rounded-md bg-black px-8 py-3 text-white transition hover:bg-gray-800">
+            <button type="submit" disabled={isProcessing} className="flex w-full items-center justify-center gap-3 rounded-md bg-black px-8 py-3 text-white transition hover:bg-gray-800 disabled:opacity-50">
               <WhatsAppIcon className="w-5 h-5" />
-              <span className="text-sm font-medium">تأكيد الطلب عبر واتساب</span>
+              <span className="text-sm font-medium">
+                {isProcessing ? 'جاري إنشاء الطلب...' : 'تأكيد الطلب عبر واتساب'}
+              </span>
             </button>
           </form>
         </div>
