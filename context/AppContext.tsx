@@ -1,210 +1,89 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext } from 'react';
 import type { Product, MainCategory, Subcategory, Order, AppContextType, CartItem, OrderStatus } from '../types';
+import useLocalStorage from '../hooks/useLocalStorage';
+import { initialProducts, initialMainCategories, initialSubcategories, initialOrders } from '../utils/demoData';
 
 export const AppContext = createContext<AppContextType | null>(null);
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  // Data States
-  const [products, setProducts] = useState<Product[]>([]);
-  const [mainCategories, setMainCategories] = useState<MainCategory[]>([]);
-  const [subcategories, setSubcategories] = useState<Subcategory[]>([]);
-  const [orders, setOrders] = useState<Order[]>([]);
-  
-  // App States
-  // FIX: Replaced useLocalStorage with useState and useEffect to handle localStorage persistence directly, as hooks/useLocalStorage.ts is not a module.
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    try {
-      const item = window.localStorage.getItem('isLoggedIn');
-      return item ? JSON.parse(item) : false;
-    } catch (error) {
-      console.error(error);
-      return false;
-    }
-  });
+  // Data States using Local Storage for persistence
+  const [products, setProducts] = useLocalStorage<Product[]>('products', initialProducts);
+  const [mainCategories, setMainCategories] = useLocalStorage<MainCategory[]>('mainCategories', initialMainCategories);
+  const [subcategories, setSubcategories] = useLocalStorage<Subcategory[]>('subcategories', initialSubcategories);
+  const [orders, setOrders] = useLocalStorage<Order[]>('orders', initialOrders);
+  const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>('isLoggedIn', false);
+  const [cart, setCart] = useLocalStorage<CartItem[]>('cart', []);
 
-  useEffect(() => {
-    try {
-      window.localStorage.setItem('isLoggedIn', JSON.stringify(isLoggedIn));
-    } catch (error) {
-      console.error(error);
-    }
-  }, [isLoggedIn]);
-
-  const [cart, setCart] = useState<CartItem[]>(() => {
-    try {
-      const item = window.localStorage.getItem('cart');
-      return item ? JSON.parse(item) : [];
-    } catch (error) {
-      console.error(error);
-      return [];
-    }
-  });
-
-  useEffect(() => {
-    try {
-      window.localStorage.setItem('cart', JSON.stringify(cart));
-    } catch (error) {
-      console.error(error);
-    }
-  }, [cart]);
-  
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // --- Data Fetching from API ---
-  const fetchInitialData = async () => {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const [productsRes, mainCategoriesRes, subcategoriesRes, ordersRes] = await Promise.all([
-        fetch('/api/products'),
-        fetch('/api/categories/main'),
-        fetch('/api/categories/sub'),
-        fetch('/api/orders')
-      ]);
-
-      if (!productsRes.ok || !mainCategoriesRes.ok || !subcategoriesRes.ok || !ordersRes.ok) {
-        throw new Error('فشل تحميل البيانات من الخادم.');
-      }
-      
-      const productsData = await productsRes.json();
-      const mainCategoriesData = await mainCategoriesRes.json();
-      const subcategoriesData = await subcategoriesRes.json();
-      const ordersData = await ordersRes.json();
-
-      setProducts(productsData);
-      setMainCategories(mainCategoriesData);
-      setSubcategories(subcategoriesData);
-      setOrders(ordersData);
-
-    } catch (e: any) {
-        setError(e.message || "فشل تحميل البيانات.");
-        console.error(e);
-    } finally {
-        setIsLoading(false);
-    }
-  };
-
-  // --- CRUD Operations to API ---
+  // CRUD Operations (Synchronous, local)
 
   // Products
-  const addProduct = async (productData: Omit<Product, 'id'>): Promise<Product> => {
-    const response = await fetch('/api/products', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productData),
-    });
-    if (!response.ok) throw new Error('Failed to add product');
-    await fetchInitialData(); // Refetch all data to stay in sync
-    return response.json();
+  const addProduct = (productData: Omit<Product, 'id'>) => {
+    const newProduct = { ...productData, id: Date.now() };
+    setProducts(prev => [...prev, newProduct]);
   };
 
-  const updateProduct = async (productData: Product): Promise<Product> => {
-    const response = await fetch(`/api/products/${productData.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(productData),
-    });
-    if (!response.ok) throw new Error('Failed to update product');
-    await fetchInitialData();
-    return response.json();
+  const updateProduct = (productData: Product) => {
+    setProducts(prev => prev.map(p => p.id === productData.id ? productData : p));
   };
 
-  const deleteProduct = async (productId: number): Promise<void> => {
-    const response = await fetch(`/api/products/${productId}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error('Failed to delete product');
-    await fetchInitialData();
+  const deleteProduct = (productId: number) => {
+    setProducts(prev => prev.filter(p => p.id !== productId));
   };
   
   // Main Categories
-  const addMainCategory = async (catData: Omit<MainCategory, 'id'>): Promise<MainCategory> => {
-     const response = await fetch('/api/categories/main', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(catData),
-    });
-    if (!response.ok) throw new Error('Failed to add main category');
-    await fetchInitialData();
-    return response.json();
+  const addMainCategory = (catData: Omit<MainCategory, 'id'>) => {
+    const newCategory = { ...catData, id: Date.now() };
+    setMainCategories(prev => [...prev, newCategory]);
   };
 
-  const updateMainCategory = async (catData: MainCategory): Promise<MainCategory> => {
-    const response = await fetch(`/api/categories/main/${catData.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(catData),
-    });
-    if (!response.ok) throw new Error('Failed to update main category');
-    await fetchInitialData();
-    return response.json();
+  const updateMainCategory = (catData: MainCategory) => {
+    setMainCategories(prev => prev.map(c => c.id === catData.id ? catData : c));
   };
   
-  const deleteMainCategory = async (catId: number): Promise<void> => {
-    const response = await fetch(`/api/categories/main/${catId}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error('Failed to delete main category');
-    await fetchInitialData();
+  const deleteMainCategory = (catId: number) => {
+     // Also delete related subcategories and products
+     const relatedSubIds = subcategories.filter(sc => sc.mainCategoryId === catId).map(sc => sc.id);
+     setSubcategories(prev => prev.filter(sc => sc.mainCategoryId !== catId));
+     setProducts(prev => prev.filter(p => !relatedSubIds.includes(p.subCategoryId)));
+     setMainCategories(prev => prev.filter(c => c.id !== catId));
   };
 
   // Subcategories
-  const addSubcategory = async (subCatData: Omit<Subcategory, 'id'>): Promise<Subcategory> => {
-    const response = await fetch('/api/categories/sub', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subCatData),
-    });
-    if (!response.ok) throw new Error('Failed to add subcategory');
-    await fetchInitialData();
-    return response.json();
+  const addSubcategory = (subCatData: Omit<Subcategory, 'id'>) => {
+     const newSubCategory = { ...subCatData, id: Date.now() };
+     setSubcategories(prev => [...prev, newSubCategory]);
   };
 
-  const updateSubcategory = async (subCatData: Subcategory): Promise<Subcategory> => {
-    const response = await fetch(`/api/categories/sub/${subCatData.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(subCatData),
-    });
-    if (!response.ok) throw new Error('Failed to update subcategory');
-    await fetchInitialData();
-    return response.json();
+  const updateSubcategory = (subCatData: Subcategory) => {
+     setSubcategories(prev => prev.map(sc => sc.id === subCatData.id ? subCatData : sc));
   };
 
-  const deleteSubcategory = async (subCatId: number): Promise<void> => {
-     const response = await fetch(`/api/categories/sub/${subCatId}`, { method: 'DELETE' });
-    if (!response.ok) throw new Error('Failed to delete subcategory');
-    await fetchInitialData();
+  const deleteSubcategory = (subCatId: number) => {
+     // Also delete related products
+     setProducts(prev => prev.filter(p => p.subCategoryId !== subCatId));
+     setSubcategories(prev => prev.filter(sc => sc.id !== subCatId));
   };
 
   // Orders
-  const addOrder = async (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>): Promise<Order> => {
-    const response = await fetch('/api/orders', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(orderData),
-    });
-    if (!response.ok) throw new Error('Failed to create order');
-    const newOrder = await response.json();
-    await fetchInitialData();
+  const addOrder = (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>): Order => {
+    const newOrder: Order = {
+        ...orderData,
+        id: `MEDUSA-${Math.floor(Math.random() * 900000) + 100000}`,
+        timestamp: new Date().toLocaleString('ar-EG'),
+        status: 'تحت المراجعة'
+    }
+    setOrders(prev => [newOrder, ...prev]);
     return newOrder;
   };
 
-  const updateOrderStatus = async (orderId: string, status: OrderStatus): Promise<void> => {
-    const response = await fetch(`/api/orders/${orderId}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status }),
-    });
-    if (!response.ok) throw new Error('Failed to update order status');
-    await fetchInitialData();
+  const updateOrderStatus = (orderId: string, status: OrderStatus) => {
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status } : o));
   };
 
   // Auth
-  const login = async (password: string): Promise<boolean> => {
-    const response = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ password }),
-    });
-    if (response.ok) {
+  const login = (password: string): boolean => {
+    // Simple hardcoded password check
+    if (password === 'admin123') {
         setIsLoggedIn(true);
         return true;
     }
@@ -245,8 +124,8 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   };
 
   const contextValue: AppContextType = {
-    products, mainCategories, subcategories, orders, isLoggedIn, cart, isLoading, error,
-    fetchInitialData, addProduct, updateProduct, deleteProduct,
+    products, mainCategories, subcategories, orders, isLoggedIn, cart,
+    addProduct, updateProduct, deleteProduct,
     addMainCategory, updateMainCategory, deleteMainCategory,
     addSubcategory, updateSubcategory, deleteSubcategory,
     addOrder, updateOrderStatus,

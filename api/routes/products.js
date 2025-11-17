@@ -66,7 +66,7 @@ router.get('/', async (req, res) => {
 router.post('/', async (req, res) => {
     const { name, description, price, originalPrice, subCategoryId, isAvailable, colorVariants, sizes, isBestSeller, isFeatured } = req.body;
     
-    const client = await db.pool.connect();
+    const client = await db.getPool().connect();
     try {
         await client.query('BEGIN');
 
@@ -108,7 +108,7 @@ router.put('/:id', async (req, res) => {
      const { id } = req.params;
     const { name, description, price, originalPrice, subCategoryId, isAvailable, colorVariants, sizes, isBestSeller, isFeatured } = req.body;
 
-    const client = await db.pool.connect();
+    const client = await db.getPool().connect();
     try {
         await client.query('BEGIN');
         

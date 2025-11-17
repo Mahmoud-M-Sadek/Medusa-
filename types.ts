@@ -1,4 +1,3 @@
-// This file is intentionally blank as the logic has been moved to AppContext.tsx for API integration.
 import type { Dispatch, SetStateAction } from 'react';
 
 export interface ColorVariant {
@@ -74,29 +73,25 @@ export interface AppContextType {
   orders: Order[];
   isLoggedIn: boolean;
   cart: CartItem[];
-  isLoading: boolean;
-  error: string | null;
 
-  // Async Data Operations
-  fetchInitialData: () => Promise<void>;
+  // Sync Data Operations
+  addProduct: (productData: Omit<Product, 'id'>) => void;
+  updateProduct: (productData: Product) => void;
+  deleteProduct: (productId: number) => void;
+
+  addMainCategory: (catData: Omit<MainCategory, 'id'>) => void;
+  updateMainCategory: (catData: MainCategory) => void;
+  deleteMainCategory: (catId: number) => void;
+
+  addSubcategory: (subCatData: Omit<Subcategory, 'id'>) => void;
+  updateSubcategory: (subCatData: Subcategory) => void;
+  deleteSubcategory: (subCatId: number) => void;
   
-  addProduct: (productData: Omit<Product, 'id'>) => Promise<Product>;
-  updateProduct: (productData: Product) => Promise<Product>;
-  deleteProduct: (productId: number) => Promise<void>;
-
-  addMainCategory: (catData: Omit<MainCategory, 'id'>) => Promise<MainCategory>;
-  updateMainCategory: (catData: MainCategory) => Promise<MainCategory>;
-  deleteMainCategory: (catId: number) => Promise<void>;
-
-  addSubcategory: (subCatData: Omit<Subcategory, 'id'>) => Promise<Subcategory>;
-  updateSubcategory: (subCatData: Subcategory) => Promise<Subcategory>;
-  deleteSubcategory: (subCatId: number) => Promise<void>;
-  
-  addOrder: (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>) => Promise<Order>;
-  updateOrderStatus: (orderId: string, status: OrderStatus) => Promise<void>;
+  addOrder: (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>) => Order;
+  updateOrderStatus: (orderId: string, status: OrderStatus) => void;
 
   // Auth
-  login: (password: string) => Promise<boolean>;
+  login: (password: string) => boolean;
   logout: () => void;
   
   // Cart

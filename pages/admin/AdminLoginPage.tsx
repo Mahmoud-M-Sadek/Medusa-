@@ -6,7 +6,6 @@ import type { AppContextType } from '../../types';
 const AdminLoginPage: React.FC = () => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
   const { login, isLoggedIn } = useContext(AppContext) as AppContextType;
 
@@ -14,17 +13,15 @@ const AdminLoginPage: React.FC = () => {
       return <Navigate to="/admin/dashboard" replace />;
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setIsLoading(true);
     setError('');
-    const success = await login(password);
+    const success = login(password);
     if (success) {
       navigate('/admin/dashboard');
     } else {
       setError('كلمة المرور غير صحيحة.');
     }
-    setIsLoading(false);
   };
 
   return (
@@ -44,16 +41,14 @@ const AdminLoginPage: React.FC = () => {
               onChange={(e) => setPassword(e.target.value)}
               className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-black focus:border-black block w-full p-2.5"
               required
-              disabled={isLoading}
             />
           </div>
           {error && <p className="text-sm text-red-600 text-center">{error}</p>}
           <button
             type="submit"
-            disabled={isLoading}
-            className="w-full text-white bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center disabled:opacity-50"
+            className="w-full text-white bg-black hover:bg-gray-800 focus:ring-4 focus:outline-none focus:ring-gray-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center"
           >
-            {isLoading ? 'جاري الدخول...' : 'دخول'}
+            دخول
           </button>
         </form>
       </div>

@@ -26,7 +26,7 @@ router.post('/', async (req, res) => {
     const orderId = `MEDUSA-${Math.floor(Math.random() * 900000) + 100000}`;
     const status = 'تحت المراجعة';
 
-    const client = await db.pool.connect();
+    const client = await db.getPool().connect();
     try {
         await client.query('BEGIN');
         

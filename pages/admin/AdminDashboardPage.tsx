@@ -13,7 +13,6 @@ const toBase64 = (file: File): Promise<string> => new Promise((resolve, reject) 
 
 const ProductForm: React.FC<{ productToEdit?: Product; onFormSubmit: () => void; onCancel: () => void; }> = ({ productToEdit, onFormSubmit, onCancel }) => {
     const { mainCategories, subcategories, addProduct, updateProduct } = useContext(AppContext) as AppContextType;
-    const [isLoading, setIsLoading] = useState(false);
     
     const [product, setProduct] = useState<Omit<Product, 'id'>>({
         name: '', description: '', price: 0, originalPrice: undefined, subCategoryId: 0, isAvailable: true,
@@ -100,25 +99,22 @@ const ProductForm: React.FC<{ productToEdit?: Product; onFormSubmit: () => void;
         setProduct(prev => ({ ...prev, colorVariants: prev.colorVariants.filter((_, i) => i !== index) }));
     };
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if(!product.subCategoryId) {
             alert('يرجى اختيار قسم فرعي.');
             return;
         }
-        setIsLoading(true);
         try {
             if (productToEdit) {
-                await updateProduct({ ...product, id: productToEdit.id });
+                updateProduct({ ...product, id: productToEdit.id });
             } else {
-                await addProduct(product);
+                addProduct(product);
             }
             onFormSubmit();
         } catch (error) {
             console.error(error);
             alert('حدث خطأ أثناء حفظ المنتج.');
-        } finally {
-            setIsLoading(false);
         }
     };
     
@@ -128,26 +124,26 @@ const ProductForm: React.FC<{ productToEdit?: Product; onFormSubmit: () => void;
         <form onSubmit={handleSubmit} className="space-y-6 bg-gray-50 p-6 rounded-lg">
             <h3 className="text-xl font-bold">{productToEdit ? 'تعديل المنتج' : 'إضافة منتج جديد'}</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="text" placeholder="اسم المنتج" name="name" value={product.name} onChange={handleChange} className="w-full rounded-md border-gray-300" required disabled={isLoading} />
-                <input type="number" placeholder="السعر" name="price" value={product.price} onChange={handleChange} className="w-full rounded-md border-gray-300" required disabled={isLoading} />
+                <input type="text" placeholder="اسم المنتج" name="name" value={product.name} onChange={handleChange} className="w-full rounded-md border-gray-300" required />
+                <input type="number" placeholder="السعر" name="price" value={product.price} onChange={handleChange} className="w-full rounded-md border-gray-300" required />
             </div>
              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <input type="number" placeholder="السعر الأصلي (قبل الخصم)" name="originalPrice" value={product.originalPrice || ''} onChange={handleChange} className="w-full rounded-md border-gray-300" disabled={isLoading} />
-                <input type="text" placeholder="المقاسات (مفصولة بفاصلة)" name="sizes" value={product.sizes.join(', ')} onChange={handleSizeChange} className="w-full rounded-md border-gray-300" disabled={isLoading} />
+                <input type="number" placeholder="السعر الأصلي (قبل الخصم)" name="originalPrice" value={product.originalPrice || ''} onChange={handleChange} className="w-full rounded-md border-gray-300" />
+                <input type="text" placeholder="المقاسات (مفصولة بفاصلة)" name="sizes" value={product.sizes.join(', ')} onChange={handleSizeChange} className="w-full rounded-md border-gray-300" />
             </div>
-            <textarea placeholder="الوصف" name="description" value={product.description} onChange={handleChange} rows={3} className="w-full rounded-md border-gray-300" disabled={isLoading}></textarea>
+            <textarea placeholder="الوصف" name="description" value={product.description} onChange={handleChange} rows={3} className="w-full rounded-md border-gray-300"></textarea>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <select value={selectedMainCat} onChange={handleMainCategoryChange} className="w-full rounded-md border-gray-300" disabled={isLoading}>
+                <select value={selectedMainCat} onChange={handleMainCategoryChange} className="w-full rounded-md border-gray-300">
                      {mainCategories.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                 </select>
-                <select name="subCategoryId" value={product.subCategoryId} onChange={handleChange} className="w-full rounded-md border-gray-300" required disabled={isLoading}>
+                <select name="subCategoryId" value={product.subCategoryId} onChange={handleChange} className="w-full rounded-md border-gray-300" required>
                     {availableSubcategories.length > 0 ? availableSubcategories.map(sc => <option key={sc.id} value={sc.id}>{sc.name}</option>) : <option value="" disabled>اختر قسم رئيسي أولاً</option>}
                 </select>
             </div>
              <div className="flex items-center gap-4">
-                <div className="flex items-center"><input id="isAvailable" name="isAvailable" type="checkbox" checked={product.isAvailable} onChange={handleChange} className="h-4 w-4 rounded" disabled={isLoading} /><label htmlFor="isAvailable" className="mr-2">متاح</label></div>
-                <div className="flex items-center"><input id="isBestSeller" name="isBestSeller" type="checkbox" checked={product.isBestSeller} onChange={handleChange} className="h-4 w-4 rounded" disabled={isLoading} /><label htmlFor="isBestSeller" className="mr-2">الأكثر مبيعًا</label></div>
-                <div className="flex items-center"><input id="isFeatured" name="isFeatured" type="checkbox" checked={product.isFeatured} onChange={handleChange} className="h-4 w-4 rounded" disabled={isLoading} /><label htmlFor="isFeatured" className="mr-2">مميز</label></div>
+                <div className="flex items-center"><input id="isAvailable" name="isAvailable" type="checkbox" checked={product.isAvailable} onChange={handleChange} className="h-4 w-4 rounded" /><label htmlFor="isAvailable" className="mr-2">متاح</label></div>
+                <div className="flex items-center"><input id="isBestSeller" name="isBestSeller" type="checkbox" checked={product.isBestSeller} onChange={handleChange} className="h-4 w-4 rounded" /><label htmlFor="isBestSeller" className="mr-2">الأكثر مبيعًا</label></div>
+                <div className="flex items-center"><input id="isFeatured" name="isFeatured" type="checkbox" checked={product.isFeatured} onChange={handleChange} className="h-4 w-4 rounded" /><label htmlFor="isFeatured" className="mr-2">مميز</label></div>
             </div>
 
             <div className="space-y-4 border-t pt-4">
@@ -155,31 +151,31 @@ const ProductForm: React.FC<{ productToEdit?: Product; onFormSubmit: () => void;
                 {product.colorVariants.map((variant, index) => (
                     <div key={index} className="space-y-3 border p-4 rounded-md bg-white">
                         <div className="flex gap-4 items-center">
-                            <input type="text" placeholder="اسم اللون" value={variant.name} onChange={e => handleColorChange(index, 'name', e.target.value)} className="rounded-md border-gray-300 flex-grow" required disabled={isLoading} />
-                            <input type="color" value={variant.colorCode} onChange={e => handleColorChange(index, 'colorCode', e.target.value)} className="h-10 w-16 rounded-md p-0 border-0" disabled={isLoading} />
-                            <button type="button" onClick={() => removeColorVariant(index)} className="text-red-500 hover:text-red-700 disabled:opacity-50" disabled={product.colorVariants.length <= 1 || isLoading}><Trash2Icon /></button>
+                            <input type="text" placeholder="اسم اللون" value={variant.name} onChange={e => handleColorChange(index, 'name', e.target.value)} className="rounded-md border-gray-300 flex-grow" required />
+                            <input type="color" value={variant.colorCode} onChange={e => handleColorChange(index, 'colorCode', e.target.value)} className="h-10 w-16 rounded-md p-0 border-0" />
+                            <button type="button" onClick={() => removeColorVariant(index)} className="text-red-500 hover:text-red-700 disabled:opacity-50" disabled={product.colorVariants.length <= 1}><Trash2Icon /></button>
                         </div>
                         <div>
                              <label className="block text-sm font-medium mb-1">صور هذا اللون</label>
-                             <input type="file" accept="image/*" multiple onChange={e => handleImagesChange(index, e.target.files)} className="text-sm" disabled={isLoading} />
+                             <input type="file" accept="image/*" multiple onChange={e => handleImagesChange(index, e.target.files)} className="text-sm" />
                              <div className="mt-2 flex flex-wrap gap-2">
                                  {variant.images.map((img, imgIndex) => (
                                      <div key={imgIndex} className="relative">
                                          <img src={img} alt="preview" className="w-20 h-20 object-cover rounded-md" />
-                                         <button type="button" onClick={() => removeImage(index, imgIndex)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5" disabled={isLoading}><XIcon className="w-3 h-3"/></button>
+                                         <button type="button" onClick={() => removeImage(index, imgIndex)} className="absolute -top-1 -right-1 bg-red-500 text-white rounded-full p-0.5"><XIcon className="w-3 h-3"/></button>
                                      </div>
                                  ))}
                              </div>
                         </div>
                     </div>
                 ))}
-                <button type="button" onClick={addColorVariant} className="flex items-center gap-2 text-sm text-black" disabled={isLoading}><PlusCircleIcon /> إضافة لون آخر</button>
+                <button type="button" onClick={addColorVariant} className="flex items-center gap-2 text-sm text-black"><PlusCircleIcon /> إضافة لون آخر</button>
             </div>
             
             <div className="flex justify-end gap-4 border-t pt-4">
-                <button type="button" onClick={onCancel} className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm border border-gray-300" disabled={isLoading}>إلغاء</button>
-                <button type="submit" className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm disabled:opacity-50" disabled={isLoading}>
-                    {isLoading ? 'جاري الحفظ...' : (productToEdit ? 'حفظ التعديلات' : 'إضافة المنتج')}
+                <button type="button" onClick={onCancel} className="rounded-md bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm border border-gray-300">إلغاء</button>
+                <button type="submit" className="rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm">
+                    {productToEdit ? 'حفظ التعديلات' : 'إضافة المنتج'}
                 </button>
             </div>
         </form>
@@ -191,25 +187,21 @@ const MainCategoryManager: React.FC = () => {
     const [name, setName] = useState('');
     const [image, setImage] = useState('');
     const [editingCategory, setEditingCategory] = useState<MainCategory | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         if(!name || !image) return;
-        setIsLoading(true);
         try {
             if (editingCategory) {
-                await updateMainCategory({ ...editingCategory, name, image });
+                updateMainCategory({ ...editingCategory, name, image });
             } else {
-                await addMainCategory({ name, image });
+                addMainCategory({ name, image });
             }
             setName('');
             setImage('');
             setEditingCategory(null);
         } catch (error) {
             alert('حدث خطأ');
-        } finally {
-            setIsLoading(false);
         }
     }
     
@@ -225,9 +217,9 @@ const MainCategoryManager: React.FC = () => {
         setImage(category.image);
     }
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = (id: number) => {
         if(window.confirm('هل أنت متأكد من حذف هذا القسم؟ سيتم حذف الأقسام الفرعية والمنتجات المرتبطة به.')) {
-            await deleteMainCategory(id);
+            deleteMainCategory(id);
         }
     }
 
@@ -246,16 +238,16 @@ const MainCategoryManager: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <form onSubmit={handleSubmit} className="md:col-span-1 bg-white p-6 rounded-lg shadow space-y-4 self-start">
                 <h3 className="text-xl font-bold">{editingCategory ? 'تعديل قسم رئيسي' : 'إضافة قسم رئيسي'}</h3>
-                <input type="text" placeholder="اسم القسم" value={name} onChange={e => setName(e.target.value)} className="w-full rounded-md border-gray-300" required disabled={isLoading} />
+                <input type="text" placeholder="اسم القسم" value={name} onChange={e => setName(e.target.value)} className="w-full rounded-md border-gray-300" required />
                 <div>
                      <label className="text-sm">صورة القسم</label>
-                    <input type="file" accept="image/*" onChange={e => handleImageUpload(e.target.files ? e.target.files[0] : null)} className="w-full text-sm" disabled={isLoading} />
+                    <input type="file" accept="image/*" onChange={e => handleImageUpload(e.target.files ? e.target.files[0] : null)} className="w-full text-sm" />
                     {image && <img src={image} alt="preview" className="w-24 h-24 mt-2 object-cover rounded-md"/>}
                 </div>
-                <button type="submit" className="w-full rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm disabled:opacity-50" disabled={isLoading}>
-                    {isLoading ? 'جاري الحفظ...' : (editingCategory ? 'حفظ التعديلات' : 'إضافة')}
+                <button type="submit" className="w-full rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm">
+                    {editingCategory ? 'حفظ التعديلات' : 'إضافة'}
                 </button>
-                {editingCategory && <button type="button" onClick={resetForm} className="w-full mt-2 text-center text-sm" disabled={isLoading}>إلغاء التعديل</button>}
+                {editingCategory && <button type="button" onClick={resetForm} className="w-full mt-2 text-center text-sm">إلغاء التعديل</button>}
             </form>
             <div className="md:col-span-2 bg-white shadow overflow-hidden rounded-md">
                 <ul className="divide-y divide-gray-200">
@@ -285,25 +277,18 @@ const SubcategoryManager: React.FC = () => {
     const [name, setName] = useState('');
     const [mainCategoryId, setMainCategoryId] = useState(mainCategories[0]?.id || 0);
     const [editingSubcategory, setEditingSubcategory] = useState<Subcategory | null>(null);
-    const [isLoading, setIsLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!name || !mainCategoryId) return;
-        setIsLoading(true);
-        try {
-            if (editingSubcategory) {
-                await updateSubcategory({ ...editingSubcategory, name, mainCategoryId });
-            } else {
-                await addSubcategory({ name, mainCategoryId });
-            }
-            setName('');
-            setEditingSubcategory(null);
-        } catch (error) {
-            alert('حدث خطأ');
-        } finally {
-            setIsLoading(false);
+        
+        if (editingSubcategory) {
+            updateSubcategory({ ...editingSubcategory, name, mainCategoryId });
+        } else {
+            addSubcategory({ name, mainCategoryId });
         }
+        setName('');
+        setEditingSubcategory(null);
     }
 
     const handleEdit = (subcategory: Subcategory) => {
@@ -312,9 +297,9 @@ const SubcategoryManager: React.FC = () => {
         setMainCategoryId(subcategory.mainCategoryId);
     }
 
-    const handleDelete = async (id: number) => {
+    const handleDelete = (id: number) => {
         if (window.confirm('هل أنت متأكد من حذف هذا القسم الفرعي؟ سيتم حذف المنتجات المرتبطة به.')) {
-            await deleteSubcategory(id);
+            deleteSubcategory(id);
         }
     }
     
@@ -332,15 +317,15 @@ const SubcategoryManager: React.FC = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             <form onSubmit={handleSubmit} className="md:col-span-1 bg-white p-6 rounded-lg shadow space-y-4 self-start">
                 <h3 className="text-xl font-bold">{editingSubcategory ? 'تعديل قسم فرعي' : 'إضافة قسم فرعي'}</h3>
-                <input type="text" placeholder="اسم القسم الفرعي" value={name} onChange={e => setName(e.target.value)} className="w-full rounded-md border-gray-300" required disabled={isLoading} />
-                <select value={mainCategoryId} onChange={e => setMainCategoryId(Number(e.target.value))} className="w-full rounded-md border-gray-300" disabled={isLoading}>
+                <input type="text" placeholder="اسم القسم الفرعي" value={name} onChange={e => setName(e.target.value)} className="w-full rounded-md border-gray-300" required />
+                <select value={mainCategoryId} onChange={e => setMainCategoryId(Number(e.target.value))} className="w-full rounded-md border-gray-300">
                     <option value={0} disabled>اختر القسم الرئيسي</option>
                     {mainCategories.map(mc => <option key={mc.id} value={mc.id}>{mc.name}</option>)}
                 </select>
-                <button type="submit" className="w-full rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm disabled:opacity-50" disabled={isLoading}>
-                    {isLoading ? 'جاري الحفظ...' : (editingSubcategory ? 'حفظ التعديلات' : 'إضافة')}
+                <button type="submit" className="w-full rounded-md bg-black px-4 py-2 text-sm font-medium text-white shadow-sm">
+                    {editingSubcategory ? 'حفظ التعديلات' : 'إضافة'}
                 </button>
-                {editingSubcategory && <button type="button" onClick={resetForm} className="w-full mt-2 text-center text-sm" disabled={isLoading}>إلغاء التعديل</button>}
+                {editingSubcategory && <button type="button" onClick={resetForm} className="w-full mt-2 text-center text-sm">إلغاء التعديل</button>}
             </form>
             <div className="md:col-span-2 bg-white shadow overflow-hidden rounded-md">
                 <ul className="divide-y divide-gray-200">
