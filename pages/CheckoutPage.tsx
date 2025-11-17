@@ -49,7 +49,7 @@ const CheckoutPage: React.FC = () => {
     
     // Create WhatsApp message
     let message = `
-طلب جديد من MODESSA:
+طلب جديد من Medusa:
 *رقم الطلب: ${newOrder.id}*
 -------------------
 *بيانات العميل:*
@@ -86,7 +86,7 @@ const CheckoutPage: React.FC = () => {
         <div className="mx-auto max-w-screen-xl px-4 py-16 sm:px-6 lg:px-8 text-center">
             <h1 className="text-2xl font-bold text-green-700">تم استلام طلبك بنجاح!</h1>
             <p className="mt-4 text-gray-600">
-                شكرًا لثقتك في MODESSA. لقد تم إرسال تفاصيل طلبك عبر واتساب.
+                شكرًا لثقتك في Medusa. لقد تم إرسال تفاصيل طلبك عبر واتساب.
             </p>
             <div className="mt-6 p-4 bg-gray-100 rounded-lg inline-block">
                 <p className="text-sm text-gray-700">رقم طلبك هو:</p>

@@ -12,7 +12,7 @@ const HeroSection: React.FC = () => (
       <div className="max-w-2xl mx-auto">
         <h1 className="text-4xl font-extrabold text-white sm:text-6xl">
           أناقتك تبدأ من هنا
-          <strong className="block font-extrabold mt-2"> MODESSA Style </strong>
+          <strong className="block font-extrabold mt-2"> Medusa Style </strong>
         </h1>
 
         <p className="mt-6 max-w-lg mx-auto text-white/90 sm:text-xl/relaxed">
@@ -178,7 +178,7 @@ const FeaturesSection: React.FC = () => {
         <section className="bg-gray-50">
             <div className="mx-auto max-w-screen-xl px-4 py-16 sm:px-6 lg:px-8">
                  <div className="text-center">
-                    <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">لماذا تختار MODESSA؟</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">لماذا تختار Medusa؟</h2>
                  </div>
                 <div className="mt-12 grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4 text-center">
                     {features.map(feature => (
@@ -197,7 +197,7 @@ const FeaturesSection: React.FC = () => {
 const TestimonialsSection: React.FC = () => {
     const testimonials = [
         { name: 'سارة أحمد', quote: 'جودة المنتجات ممتازة والتوصيل كان سريع جدًا. تجربة رائعة بالتأكيد سأكررها.' },
-        { name: 'محمد علي', quote: 'تصاميم عصرية وفريدة، والمقاسات كانت مظبوطة تمامًا. شكرًا MODESSA.' },
+        { name: 'محمد علي', quote: 'تصاميم عصرية وفريدة، والمقاسات كانت مظبوطة تمامًا. شكرًا Medusa.' },
         { name: 'فاطمة حسن', quote: 'خدمة العملاء كانت متعاونة جدًا وساعدوني في اختيار المنتج المناسب. أنصح به بشدة.' },
     ];
     return (
@@ -231,7 +231,7 @@ const GallerySection: React.FC = () => {
         <section className="bg-gray-50 py-16">
             <div className="mx-auto max-w-screen-xl px-4 sm:px-6 lg:px-8">
                  <div className="text-center">
-                    <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">#MODESSAStyle</h2>
+                    <h2 className="text-3xl font-bold text-gray-900 sm:text-4xl">#MedusaStyle</h2>
                     <p className="mx-auto mt-4 max-w-md text-gray-500">
                         إطلالات ملهمة من مجتمعنا.
                     </p>

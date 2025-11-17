@@ -83,7 +83,7 @@ const TrackOrderPage: React.FC = () => {
                             type="text"
                             value={searchId}
                             onChange={(e) => setSearchId(e.target.value)}
-                            placeholder="مثال: MODESSA-123456"
+                            placeholder="مثال: MEDUSA-123456"
                             className="w-full rounded-lg border-gray-300 p-3 text-sm focus:border-black focus:ring-black"
                         />
                         <button type="submit" className="rounded-lg bg-black px-5 py-3 text-sm font-medium text-white hover:bg-gray-800">
