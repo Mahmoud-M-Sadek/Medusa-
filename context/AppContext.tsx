@@ -110,23 +110,23 @@ const initialProducts: Product[] = [
 ];
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useLocalStorage<Product[]>('medusa_products', []);
-  const [mainCategories, setMainCategories] = useLocalStorage<MainCategory[]>('medusa_main_categories', []);
-  const [subcategories, setSubcategories] = useLocalStorage<Subcategory[]>('medusa_subcategories', []);
-  const [orders, setOrders] = useLocalStorage<Order[]>('medusa_orders', []);
-  const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>('medusa_isLoggedIn', false);
-  const [cart, setCart] = useLocalStorage<CartItem[]>('medusa_cart', []);
+  const [products, setProducts] = useLocalStorage<Product[]>('modessa_products', []);
+  const [mainCategories, setMainCategories] = useLocalStorage<MainCategory[]>('modessa_main_categories', []);
+  const [subcategories, setSubcategories] = useLocalStorage<Subcategory[]>('modessa_subcategories', []);
+  const [orders, setOrders] = useLocalStorage<Order[]>('modessa_orders', []);
+  const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>('modessa_isLoggedIn', false);
+  const [cart, setCart] = useLocalStorage<CartItem[]>('modessa_cart', []);
 
   useEffect(() => {
-    const productsInStorage = window.localStorage.getItem('medusa_products');
+    const productsInStorage = window.localStorage.getItem('modessa_products');
     if (!productsInStorage || JSON.parse(productsInStorage).length === 0) {
         setProducts(initialProducts);
     }
-    const mainCategoriesInStorage = window.localStorage.getItem('medusa_main_categories');
+    const mainCategoriesInStorage = window.localStorage.getItem('modessa_main_categories');
     if (!mainCategoriesInStorage || JSON.parse(mainCategoriesInStorage).length === 0) {
         setMainCategories(initialMainCategories);
     }
-    const subcategoriesInStorage = window.localStorage.getItem('medusa_subcategories');
+    const subcategoriesInStorage = window.localStorage.getItem('modessa_subcategories');
     if (!subcategoriesInStorage || JSON.parse(subcategoriesInStorage).length === 0) {
         setSubcategories(initialSubcategories);
     }
@@ -148,7 +148,7 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const addOrder = (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>): Order => {
     const newOrder: Order = {
         ...orderData,
-        id: `MEDUSA-${Date.now().toString().slice(-6)}`,
+        id: `MODESSA-${Date.now().toString().slice(-6)}`,
         timestamp: new Date().toLocaleString('ar-EG'),
         status: 'تحت المراجعة',
     };

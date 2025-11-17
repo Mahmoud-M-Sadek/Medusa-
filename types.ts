@@ -1,3 +1,6 @@
+// FIX: Import Dispatch and SetStateAction to be used in type definitions.
+import type { Dispatch, SetStateAction } from 'react';
+
 export interface ColorVariant {
   name: string;
   colorCode: string;
@@ -67,11 +70,14 @@ export interface Order {
 
 export interface AppContextType {
   products: Product[];
-  setProducts: React.Dispatch<React.SetStateAction<Product[]>>;
+  // FIX: Replaced React.Dispatch and React.SetStateAction with imported types.
+  setProducts: Dispatch<SetStateAction<Product[]>>;
   mainCategories: MainCategory[];
-  setMainCategories: React.Dispatch<React.SetStateAction<MainCategory[]>>;
+  // FIX: Replaced React.Dispatch and React.SetStateAction with imported types.
+  setMainCategories: Dispatch<SetStateAction<MainCategory[]>>;
   subcategories: Subcategory[];
-  setSubcategories: React.Dispatch<React.SetStateAction<Subcategory[]>>;
+  // FIX: Replaced React.Dispatch and React.SetStateAction with imported types.
+  setSubcategories: Dispatch<SetStateAction<Subcategory[]>>;
   orders: Order[];
   addOrder: (orderData: Omit<Order, 'id' | 'timestamp' | 'status'>) => Order;
   updateOrderStatus: (orderId: string, status: OrderStatus) => void;

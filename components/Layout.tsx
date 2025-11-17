@@ -29,7 +29,7 @@ const Header: React.FC = () => {
                     <div className="md:flex md:items-center md:gap-12">
                         <Link className="block text-black" to="/">
                             <span className="sr-only">Home</span>
-                            <span className="text-2xl font-bold">MEDUSA</span>
+                            <span className="text-2xl font-bold">MODESSA</span>
                         </Link>
                     </div>
 
@@ -99,7 +99,7 @@ const Footer: React.FC = () => {
       <div className="mx-auto max-w-screen-xl px-4 py-8 sm:px-6 lg:px-8">
         <div className="sm:flex sm:items-center sm:justify-between text-center">
             <div className="flex justify-center sm:justify-start">
-               <span className="text-2xl font-bold">MEDUSA</span>
+               <span className="text-2xl font-bold">MODESSA</span>
             </div>
              <div className="flex justify-center gap-6 sm:justify-start md:gap-8 mt-4 sm:mt-0">
                 <a href="https://www.facebook.com/share/16x7iyE5ck/?mibextid=wwXIfr" target="_blank" rel="noreferrer" className="hover:opacity-75"><FacebookIcon /></a>
@@ -107,7 +107,7 @@ const Footer: React.FC = () => {
                 <a href="https://wa.me/201555414422" target="_blank" rel="noreferrer" className="hover:opacity-75"><WhatsAppIcon /></a>
             </div>
             <p className="mt-4 text-center text-sm lg:mt-0 lg:text-right">
-                &copy; {new Date().getFullYear()} Medusa. جميع الحقوق محفوظة.
+                &copy; {new Date().getFullYear()} MODESSA. جميع الحقوق محفوظة.
             </p>
         </div>
       </div>

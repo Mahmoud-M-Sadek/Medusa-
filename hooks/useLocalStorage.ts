@@ -1,7 +1,8 @@
+// FIX: Import Dispatch and SetStateAction to be used in function signature.
+import { useState, useEffect, Dispatch, SetStateAction } from 'react';
 
-import { useState, useEffect } from 'react';
-
-function useLocalStorage<T,>(key: string, initialValue: T): [T, React.Dispatch<React.SetStateAction<T>>] {
+// FIX: Replaced React.Dispatch and React.SetStateAction with imported types in the return type annotation.
+function useLocalStorage<T,>(key: string, initialValue: T): [T, Dispatch<SetStateAction<T>>] {
   const [storedValue, setStoredValue] = useState<T>(() => {
     try {
       const item = window.localStorage.getItem(key);
