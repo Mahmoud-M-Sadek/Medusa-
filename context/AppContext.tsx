@@ -110,12 +110,23 @@ const initialProducts: Product[] = [
 ];
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [products, setProducts] = useLocalStorage<Product[]>('modessa_products', initialProducts);
-  const [mainCategories, setMainCategories] = useLocalStorage<MainCategory[]>('modessa_main_categories', initialMainCategories);
-  const [subcategories, setSubcategories] = useLocalStorage<Subcategory[]>('modessa_subcategories', initialSubcategories);
+  const [seeded, setSeeded] = useLocalStorage<boolean>('modessa_seeded', false);
+
+  const [products, setProducts] = useLocalStorage<Product[]>('modessa_products', []);
+  const [mainCategories, setMainCategories] = useLocalStorage<MainCategory[]>('modessa_main_categories', []);
+  const [subcategories, setSubcategories] = useLocalStorage<Subcategory[]>('modessa_subcategories', []);
   const [orders, setOrders] = useLocalStorage<Order[]>('modessa_orders', []);
   const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>('modessa_isLoggedIn', false);
   const [cart, setCart] = useLocalStorage<CartItem[]>('modessa_cart', []);
+
+  useEffect(() => {
+    if (!seeded) {
+        setProducts(initialProducts);
+        setMainCategories(initialMainCategories);
+        setSubcategories(initialSubcategories);
+        setSeeded(true);
+    }
+  }, [seeded, setSeeded, setProducts, setMainCategories, setSubcategories]);
 
   const login = (password: string) => {
     if (password === 'admin123456') {
