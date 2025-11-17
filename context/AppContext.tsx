@@ -1,4 +1,4 @@
-import React, { createContext, useState, useEffect } from 'react';
+import React, { createContext, useEffect } from 'react';
 import useLocalStorage from '../hooks/useLocalStorage';
 import type { Product, MainCategory, Subcategory, Order, AppContextType, CartItem, OrderStatus } from '../types';
 
@@ -110,8 +110,6 @@ const initialProducts: Product[] = [
 ];
 
 export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [seeded, setSeeded] = useLocalStorage<boolean>('modessa_seeded', false);
-
   const [products, setProducts] = useLocalStorage<Product[]>('modessa_products', []);
   const [mainCategories, setMainCategories] = useLocalStorage<MainCategory[]>('modessa_main_categories', []);
   const [subcategories, setSubcategories] = useLocalStorage<Subcategory[]>('modessa_subcategories', []);
@@ -119,14 +117,16 @@ export const AppProvider: React.FC<{ children: React.ReactNode }> = ({ children 
   const [isLoggedIn, setIsLoggedIn] = useLocalStorage<boolean>('modessa_isLoggedIn', false);
   const [cart, setCart] = useLocalStorage<CartItem[]>('modessa_cart', []);
 
+  // Robust data seeding logic. This ensures initial data is loaded only once.
   useEffect(() => {
-    if (!seeded) {
+    const isDataSeeded = localStorage.getItem('modessa_data_seeded');
+    if (isDataSeeded !== 'true') {
         setProducts(initialProducts);
         setMainCategories(initialMainCategories);
         setSubcategories(initialSubcategories);
-        setSeeded(true);
+        localStorage.setItem('modessa_data_seeded', 'true');
     }
-  }, [seeded, setSeeded, setProducts, setMainCategories, setSubcategories]);
+  }, [setProducts, setMainCategories, setSubcategories]);
 
   const login = (password: string) => {
     if (password === 'admin123456') {
